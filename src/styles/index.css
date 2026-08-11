@@ -1,0 +1,242 @@
+@import 'tailwindcss';
+
+/* Dark is the default: a food log gets opened in restaurants and at night. */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0a0c0b;
+  --bg-elevated: #101413;
+  --surface: #161b19;
+  --surface-2: #1e2523;
+  --surface-3: #283130;
+  --border: rgb(255 255 255 / 0.09);
+  --border-strong: rgb(255 255 255 / 0.16);
+
+  --text: #f1f5f2;
+  --text-muted: #8d9a94;
+  --text-faint: #5d6864;
+
+  --accent: #c9f74e;
+  --accent-soft: rgb(201 247 78 / 0.14);
+  --on-accent: #0a0c0b;
+
+  --protein: #56c3ff;
+  --fat: #ffb64d;
+  --carbs: #b892ff;
+  --danger: #ff6b6b;
+  --warn: #ffc94d;
+
+  --shadow-sheet: 0 -8px 40px rgb(0 0 0 / 0.5);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f6f8f5;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #eef1ec;
+  --surface-3: #e3e8df;
+  --border: rgb(16 24 20 / 0.08);
+  --border-strong: rgb(16 24 20 / 0.16);
+
+  --text: #10160f;
+  --text-muted: #626d66;
+  --text-faint: #98a29b;
+
+  --accent: #4b9c00;
+  --accent-soft: rgb(75 156 0 / 0.12);
+  --on-accent: #ffffff;
+
+  --protein: #0d8ecf;
+  --fat: #d1810a;
+  --carbs: #7a4fd6;
+  --danger: #d84343;
+  --warn: #b98200;
+
+  --shadow-sheet: 0 -8px 40px rgb(16 24 20 / 0.16);
+  --shadow-card: 0 1px 2px rgb(16 24 20 / 0.05);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+
+    --bg: #f6f8f5;
+    --bg-elevated: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef1ec;
+    --surface-3: #e3e8df;
+    --border: rgb(16 24 20 / 0.08);
+    --border-strong: rgb(16 24 20 / 0.16);
+
+    --text: #10160f;
+    --text-muted: #626d66;
+    --text-faint: #98a29b;
+
+    --accent: #4b9c00;
+    --accent-soft: rgb(75 156 0 / 0.12);
+    --on-accent: #ffffff;
+
+    --protein: #0d8ecf;
+    --fat: #d1810a;
+    --carbs: #7a4fd6;
+    --danger: #d84343;
+    --warn: #b98200;
+
+    --shadow-sheet: 0 -8px 40px rgb(16 24 20 / 0.16);
+    --shadow-card: 0 1px 2px rgb(16 24 20 / 0.05);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+
+  --color-protein: var(--protein);
+  --color-fat: var(--fat);
+  --color-carbs: var(--carbs);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+
+  --radius-card: 1.5rem;
+  --radius-tile: 1.25rem;
+  --radius-pill: 999px;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+
+  --ease-out-back: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    background: var(--bg);
+    /* Fills the area behind the status bar / home indicator in standalone mode. */
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* iOS zooms the viewport when focusing an input below 16px. */
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+    font-size: max(16px, 1em);
+    color: inherit;
+  }
+
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  /* Calorie and macro numbers must not jitter while values update. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}
+
+@layer utilities {
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .h-safe-bottom {
+    height: env(safe-area-inset-bottom);
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+@keyframes yq-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes yq-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes yq-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes yq-shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
