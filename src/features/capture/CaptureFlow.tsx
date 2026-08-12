@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState } from 'react';
+import { Suspense, useState } from 'react';
+import { lazyChunk } from '@/shared/lib/lazyChunk';
 import { useAppStore } from '@/shared/store/app';
 import { CaptureMenuSheet } from './CaptureMenuSheet';
 import { TextCaptureSheet } from './TextCaptureSheet';
@@ -9,7 +10,7 @@ import { DraftEditorSheet } from '@/features/entry-editor/DraftEditorSheet';
 
 // The zxing decoder is ~125 KB gzipped — split it out so everyone else's
 // bundle stays light and it only loads when the barcode sheet actually opens.
-const BarcodeCaptureSheet = lazy(() =>
+const BarcodeCaptureSheet = lazyChunk(() =>
   import('./BarcodeCaptureSheet').then((m) => ({ default: m.BarcodeCaptureSheet })),
 );
 

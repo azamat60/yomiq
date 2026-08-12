@@ -46,6 +46,8 @@ Set in `api/_shared.ts`, overridable via env:
 
 Voice input is a two-step flow: `MediaRecorder` → `/api/transcribe` → text → `/api/analyze` in text mode. The same endpoint and JSON schema serve photo, text, and voice.
 
+**The SPA rewrite deliberately excludes anything file-shaped.** `vercel.json` falls back to `index.html` only for extensionless route paths. A catch-all rewrite looks harmless until a deploy renames the hashed chunks: a page left open across the deploy requests the old filename, the rewrite answers with `index.html` at status 200, and the browser rejects it with `'text/html' is not a valid JavaScript MIME type`, taking the whole router down. Missing files must 404 honestly. `lazyChunk` in `src/shared/lib/` then catches the rejected import and reloads once to pick up the new build.
+
 ## Deploying to Vercel
 
 1. Push the repo and import the project into Vercel — it will be detected as a Vite app.
