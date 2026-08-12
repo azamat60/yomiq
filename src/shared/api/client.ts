@@ -85,23 +85,6 @@ export async function transcribe(audio: Blob): Promise<string> {
   return payload.text ?? '';
 }
 
-export type BarcodeProduct = { name: string; per100: Macros };
-
-export async function lookupBarcode(code: string): Promise<BarcodeProduct> {
-  const payload = await request(`/api/barcode?code=${encodeURIComponent(code)}`, { method: 'GET' });
-  const data = payload as Partial<BarcodeProduct>;
-
-  return {
-    name: String(data.name ?? 'Product').slice(0, 60),
-    per100: {
-      kcal: clamp(data.per100?.kcal, 0, 900, 0),
-      protein: clamp(data.per100?.protein, 0, 100, 0),
-      fat: clamp(data.per100?.fat, 0, 100, 0),
-      carbs: clamp(data.per100?.carbs, 0, 100, 0),
-    },
-  };
-}
-
 /** Model output is untrusted input: clamp it before it reaches the UI or the DB. */
 function normalize(payload: unknown): AnalysisResult {
   const data = payload as Partial<AnalysisResult>;

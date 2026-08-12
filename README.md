@@ -33,7 +33,9 @@ Open http://localhost:3000. The key is only ever read on the server — `/api/*`
 
 **The camera opens via `<input type="file" capture="environment">`,** not `getUserMedia`: the latter is historically unreliable in a standalone PWA on iOS, while a file input opens the native camera and works everywhere.
 
-**Barcode lookup proxies Open Food Facts** (`api/barcode.ts`), a free, keyless, community-run database. Coverage is strongest for European and packaged goods and thinner elsewhere — treat it as a fast path for scannable products, not a replacement for photo/text/voice recognition.
+**Barcode lookup calls Open Food Facts straight from the device** (`src/shared/api/barcode.ts`), not through a serverless proxy. Open Food Facts rate-limits product lookups to 15/min *per IP*; routing every user through a handful of shared Vercel egress IPs trips that limit collectively, and the API returns 503 for everyone. Calling from the device makes the quota per user instead. The data is public and keyless, so direct calls expose nothing. Browsers cannot set `User-Agent`, so the app identifies itself via `X-User-Agent`, which Open Food Facts reads as a fallback.
+
+Coverage is strongest for European and packaged goods and thinner elsewhere — treat it as a fast path for scannable products, not a replacement for photo/text/voice recognition.
 
 ## Models
 

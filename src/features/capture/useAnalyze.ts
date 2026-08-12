@@ -1,12 +1,7 @@
 import { useCallback } from 'react';
 import type { Draft, Source } from '@/db/types';
-import {
-  analyzePhoto,
-  analyzeText,
-  lookupBarcode,
-  transcribe,
-  type AnalysisResult,
-} from '@/shared/api/client';
+import { analyzePhoto, analyzeText, transcribe, type AnalysisResult } from '@/shared/api/client';
+import { lookupBarcode } from '@/shared/api/barcode';
 import { prepareImage } from '@/shared/lib/image';
 import { mealForNow } from '@/shared/lib/date';
 import { haptic } from '@/shared/lib/haptics';
