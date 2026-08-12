@@ -6,7 +6,13 @@ import { calculateTargets } from '@/shared/lib/nutrition';
 import { haptic } from '@/shared/lib/haptics';
 import { Button } from '@/shared/ui/Button';
 import { Field, OptionRow, SegmentedControl } from '@/shared/ui/Field';
-import { IconChevronLeft } from '@/shared/ui/icons';
+import {
+  IconCamera,
+  IconChevronLeft,
+  IconMic,
+  IconStar,
+  type IconComponent,
+} from '@/shared/ui/icons';
 import { Logo } from '@/shared/ui/SplashScreen';
 import { MacroTargetsEditor } from './MacroTargetsEditor';
 import { ACTIVITY_OPTIONS, GOAL_OPTIONS, STEPS } from './constants';
@@ -238,11 +244,22 @@ function IntroStep() {
           Snap a photo, speak, or type — calories and macros get calculated for you.
         </p>
       </div>
-      <ul className="flex flex-col gap-2.5 text-left text-[15px] text-muted">
-        <li>📸 Photo of a meal → weight and calories</li>
-        <li>🎙 Voice and text instead of searching a database</li>
-        <li>⭐️ Frequent meals — added in one tap</li>
+      <ul className="flex w-full max-w-xs flex-col gap-3 text-left text-[15px] text-muted">
+        <Highlight icon={IconCamera} text="Photo of a meal → weight and calories" />
+        <Highlight icon={IconMic} text="Voice and text instead of searching a database" />
+        <Highlight icon={IconStar} text="Frequent meals — added in one tap" />
       </ul>
     </section>
+  );
+}
+
+function Highlight({ icon: Icon, text }: { icon: IconComponent; text: string }) {
+  return (
+    <li className="flex items-center gap-3">
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-accent">
+        <Icon size={18} />
+      </span>
+      {text}
+    </li>
   );
 }

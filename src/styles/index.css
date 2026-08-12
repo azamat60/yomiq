@@ -10,12 +10,15 @@
   --surface: #161b19;
   --surface-2: #1e2523;
   --surface-3: #283130;
+  /* Progress tracks need to read as a shape even at 0%, so they sit a step
+     further from the background than a plain surface. */
+  --track: #2a3230;
   --border: rgb(255 255 255 / 0.09);
   --border-strong: rgb(255 255 255 / 0.16);
 
   --text: #f1f5f2;
-  --text-muted: #8d9a94;
-  --text-faint: #5d6864;
+  --text-muted: #9ba7a1;
+  --text-faint: #7b867f;
 
   --accent: #c9f74e;
   --accent-soft: rgb(201 247 78 / 0.14);
@@ -39,12 +42,13 @@
   --surface: #ffffff;
   --surface-2: #eef1ec;
   --surface-3: #e3e8df;
+  --track: #dde3da;
   --border: rgb(16 24 20 / 0.08);
   --border-strong: rgb(16 24 20 / 0.16);
 
   --text: #10160f;
-  --text-muted: #626d66;
-  --text-faint: #98a29b;
+  --text-muted: #59635c;
+  --text-faint: #6e7872;
 
   --accent: #4b9c00;
   --accent-soft: rgb(75 156 0 / 0.12);
@@ -97,6 +101,7 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
+  --color-track: var(--track);
   --color-line: var(--border);
   --color-line-strong: var(--border-strong);
 
@@ -114,8 +119,8 @@
   --color-danger: var(--danger);
   --color-warn: var(--warn);
 
-  --radius-card: 1.5rem;
-  --radius-tile: 1.25rem;
+  --radius-card: 1.375rem;
+  --radius-tile: 1.125rem;
   --radius-pill: 999px;
 
   --font-sans:

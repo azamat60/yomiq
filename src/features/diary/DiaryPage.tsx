@@ -41,29 +41,19 @@ export function DiaryPage() {
         </Link>
       </header>
 
-      <section className="flex flex-col items-center gap-6 px-5 pt-6 pb-7">
+      <section className="flex flex-col items-center gap-4 px-5 pt-3 pb-5">
         <KcalRing consumed={consumed.kcal} target={targets.kcal} />
         <div className="w-full">
           <MacroBars consumed={consumed} target={targets} />
         </div>
       </section>
 
-      <div className="flex flex-col gap-3 px-4">
+      {/* Each card carries its own empty state, so no separate page-level hint. */}
+      <div className="flex flex-col gap-2.5 px-4">
         {MEAL_ORDER.map((meal) => (
           <MealSection key={meal} meal={meal} entries={byMeal[meal]} />
         ))}
       </div>
-
-      {entries !== undefined && list.length === 0 && <EmptyDayHint />}
     </div>
-  );
-}
-
-function EmptyDayHint() {
-  return (
-    <p className="mx-auto mt-6 max-w-[16rem] px-4 text-center text-[14px] leading-relaxed text-faint">
-      Nothing here yet. Tap <span className="font-semibold text-muted">＋</span> below — snap a photo,
-      speak, or type.
-    </p>
   );
 }

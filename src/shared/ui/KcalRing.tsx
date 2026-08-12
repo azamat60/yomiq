@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-const SIZE = 208;
-const STROKE = 15;
+const SIZE = 172;
+const STROKE = 13;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 /** Leaves a gap at the bottom so the arc reads as a gauge, not a closed loop. */
@@ -36,7 +36,7 @@ export function KcalRing({ consumed, target }: Props) {
           cy={SIZE / 2}
           r={RADIUS}
           fill="none"
-          stroke="var(--surface-2)"
+          stroke="var(--track)"
           strokeWidth={STROKE}
           strokeLinecap="round"
           strokeDasharray={`${arc} ${CIRCUMFERENCE}`}
@@ -57,14 +57,14 @@ export function KcalRing({ consumed, target }: Props) {
         )}
       </svg>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center pb-2">
-        <span className="tnum text-[52px] leading-none font-bold tracking-tight">
+      <div className="absolute inset-0 flex flex-col items-center justify-center pb-1.5">
+        <span className="tnum text-[40px] leading-none font-bold tracking-tight">
           {Math.abs(remaining)}
         </span>
-        <span className="mt-1.5 text-[13px] font-medium text-muted">
+        <span className="mt-1 text-[12.5px] font-medium text-muted">
           {over ? 'kcal over' : 'kcal left'}
         </span>
-        <span className="tnum mt-3 text-[13px] text-faint">
+        <span className="tnum mt-2 text-[12.5px] text-faint">
           {Math.round(consumed)} / {target}
         </span>
       </div>

@@ -1,4 +1,11 @@
 import type { Confidence, Meal, Source } from '@/db/types';
+import {
+  IconBreakfast,
+  IconDinner,
+  IconLunch,
+  IconSnack,
+  type IconComponent,
+} from '@/shared/ui/icons';
 
 export const MEAL_ORDER: Meal[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
@@ -9,11 +16,11 @@ export const MEAL_LABEL: Record<Meal, string> = {
   snack: 'Snack',
 };
 
-export const MEAL_ICON: Record<Meal, string> = {
-  breakfast: '🌅',
-  lunch: '🍲',
-  dinner: '🌙',
-  snack: '🍎',
+export const MEAL_ICON: Record<Meal, IconComponent> = {
+  breakfast: IconBreakfast,
+  lunch: IconLunch,
+  dinner: IconDinner,
+  snack: IconSnack,
 };
 
 export const SOURCE_LABEL: Record<Source, string> = {

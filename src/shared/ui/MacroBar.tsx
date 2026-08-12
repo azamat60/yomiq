@@ -38,10 +38,14 @@ function MacroBar({ macro, value, target }: { macro: MacroKey; value: number; ta
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between">
-        <span className="text-[13px] font-medium text-muted">{MACRO_LABEL[macro]}</span>
+      <div className="flex items-baseline justify-between gap-1">
+        <span className="text-[12.5px] font-medium text-muted">{MACRO_LABEL[macro]}</span>
+        <span className="tnum text-[12.5px] font-semibold">
+          {Math.round(value)}
+          <span className="font-normal text-faint">/{Math.round(target)}g</span>
+        </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-surface-2">
+      <div className="h-1.5 overflow-hidden rounded-full bg-track">
         <div
           className="h-full rounded-full transition-[width] duration-500 ease-out"
           style={{
@@ -50,10 +54,6 @@ function MacroBar({ macro, value, target }: { macro: MacroKey; value: number; ta
           }}
         />
       </div>
-      <span className="tnum text-[13px] font-semibold">
-        {Math.round(value)}
-        <span className="font-normal text-faint"> / {Math.round(target)} g</span>
-      </span>
     </div>
   );
 }

@@ -10,7 +10,7 @@ export function AppLayout() {
 
   return (
     <div className="min-h-dvh bg-bg">
-      <main className="mx-auto max-w-lg pb-[calc(8rem+env(safe-area-inset-bottom))]">
+      <main className="mx-auto max-w-lg pb-[calc(6rem+env(safe-area-inset-bottom))]">
         <Outlet />
       </main>
 

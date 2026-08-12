@@ -1,6 +1,7 @@
-import type { InputHTMLAttributes, ReactNode } from 'react';
+import type { InputHTMLAttributes } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { haptic } from '@/shared/lib/haptics';
+import type { IconComponent } from './icons';
 
 export function Field({
   label,
@@ -31,7 +32,7 @@ type OptionProps<T extends string> = {
   onSelect: (value: T) => void;
   title: string;
   hint?: string;
-  icon?: ReactNode;
+  icon?: IconComponent;
 };
 
 export function OptionRow<T extends string>({
@@ -40,7 +41,7 @@ export function OptionRow<T extends string>({
   onSelect,
   title,
   hint,
-  icon,
+  icon: Icon,
 }: OptionProps<T>) {
   const active = value === selected;
 
@@ -56,7 +57,16 @@ export function OptionRow<T extends string>({
         active ? 'border-accent bg-accent-soft' : 'border-line bg-surface active:bg-surface-2',
       )}
     >
-      {icon && <span className="shrink-0 text-xl">{icon}</span>}
+      {Icon && (
+        <span
+          className={cn(
+            'grid size-9 shrink-0 place-items-center rounded-xl',
+            active ? 'bg-accent/15 text-accent' : 'bg-surface-2 text-muted',
+          )}
+        >
+          <Icon size={19} />
+        </span>
+      )}
       <span className="flex-1">
         <span className="block text-[16px] font-semibold">{title}</span>
         {hint && <span className="block text-[13px] text-muted">{hint}</span>}

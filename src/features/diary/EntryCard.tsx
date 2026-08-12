@@ -6,7 +6,7 @@ import { useObjectUrl } from '@/shared/lib/useObjectUrl';
 import { haptic } from '@/shared/lib/haptics';
 import { useToast } from '@/shared/ui/Toast';
 import { MacroChips } from '@/shared/ui/MacroBar';
-import { IconTrash, IconWarning } from '@/shared/ui/icons';
+import { IconMeal, IconTrash, IconWarning } from '@/shared/ui/icons';
 
 const REVEAL_WIDTH = 88;
 const DELETE_THRESHOLD = 150;
@@ -87,8 +87,8 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
               loading="lazy"
             />
           ) : (
-            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-surface-2 text-[18px]">
-              🍽
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-surface-2 text-faint">
+              <IconMeal size={20} />
             </span>
           )}
 
@@ -99,8 +99,10 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
                 <IconWarning size={14} className="shrink-0 text-warn" />
               )}
             </span>
-            <span className="tnum block text-[13px] text-faint">{Math.round(entry.grams)} g</span>
-            <span className="mt-1 block">
+            <span className="mt-0.5 flex items-center gap-2">
+              <span className="tnum shrink-0 text-[13px] text-faint">
+                {Math.round(entry.grams)} g
+              </span>
               <MacroChips macros={macros} />
             </span>
           </span>

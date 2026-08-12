@@ -21,7 +21,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-card border border-line bg-surface p-6 text-center">
-        <span className="tnum block text-[56px] leading-none font-bold tracking-tight text-accent">
+        <span className="tnum block text-[56px] leading-none font-bold tracking-tight">
           {targets.kcal}
         </span>
         <span className="mt-1 block text-[14px] text-muted">kcal per day</span>

@@ -187,7 +187,9 @@ function FavoriteRow({
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 py-14 text-center">
-      <span className="text-[40px]">⭐️</span>
+      <span className="grid size-14 place-items-center rounded-2xl bg-surface-2 text-faint">
+        <IconStar size={24} />
+      </span>
       <p className="max-w-[16rem] text-[14.5px] leading-relaxed text-muted">
         Foods you eat often will show up here. Save any item from the editor after recognition —
         then add it in one tap.

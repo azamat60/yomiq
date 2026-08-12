@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { IconMeal } from '@/shared/ui/icons';
 
 const STAGES = [
   'Reading the photo…',
@@ -53,7 +54,7 @@ function PlateSpinner() {
   return (
     <div className="relative grid size-20 place-items-center">
       <span className="absolute inset-0 animate-spin rounded-full border-[3px] border-surface-2 border-t-accent" />
-      <span className="text-[30px]">🍽</span>
+      <IconMeal size={28} className="text-muted" />
     </div>
   );
 }
