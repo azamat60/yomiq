@@ -3,7 +3,7 @@ export function SplashScreen() {
     <div className="grid min-h-dvh place-items-center bg-bg">
       <div className="flex flex-col items-center gap-4 [animation:yq-fade-in_400ms_ease]">
         <Logo />
-        <span className="text-[13px] text-faint">Загружаем дневник…</span>
+        <span className="text-[13px] text-faint">Loading your diary…</span>
       </div>
     </div>
   );

@@ -25,14 +25,14 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
   canvas.height = height;
 
   const context = canvas.getContext('2d');
-  if (!context) throw new Error('Не удалось обработать фото.');
+  if (!context) throw new Error('Could not process the photo.');
   context.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
   const blob = await new Promise<Blob | null>((resolve) =>
     canvas.toBlob(resolve, 'image/jpeg', QUALITY),
   );
-  if (!blob) throw new Error('Не удалось сжать фото.');
+  if (!blob) throw new Error('Could not compress the photo.');
 
   return { dataUrl: canvas.toDataURL('image/jpeg', QUALITY), blob };
 }

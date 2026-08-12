@@ -72,10 +72,10 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
         manifest: {
-          name: 'Yomiq — счётчик калорий',
+          name: 'Yomiq — Calorie Tracker',
           short_name: 'Yomiq',
-          description: 'Считай калории по фото, голосом или текстом',
-          lang: 'ru',
+          description: 'Count calories from a photo, voice, or text',
+          lang: 'en',
           start_url: '/',
           scope: '/',
           display: 'standalone',

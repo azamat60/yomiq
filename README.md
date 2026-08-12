@@ -1,53 +1,55 @@
 # Yomiq
 
-Счётчик калорий по фото. Мобильный PWA: фотографируешь тарелку — OpenAI определяет блюда, вес порции и КБЖУ, запись падает в дневник дня.
+Photo-based calorie counter. A mobile PWA: photograph your plate — OpenAI identifies the dishes, portion weight, and macros, and the entry lands in your daily diary.
 
-## Быстрый старт
+## Quick start
 
 ```bash
 npm install
-cp .env.example .env.local   # вписать OPENAI_API_KEY
+cp .env.example .env.local   # fill in OPENAI_API_KEY
 npm run dev
 ```
 
-Открыть http://localhost:3000. Ключ читается только на сервере — `/api/*` поднимается прямо в Vite dev-сервере, `vercel dev` не нужен.
+Open http://localhost:3000. The key is only ever read on the server — `/api/*` is served directly by the Vite dev server, no `vercel dev` needed.
 
-## Команды
+## Commands
 
-| Команда | Что делает |
+| Command | What it does |
 |---|---|
-| `npm run dev` | dev-сервер + `/api/*` на localhost:3000 |
-| `npm run build` | проверка типов и прод-сборка в `dist/` |
-| `npm run ts` | только проверка типов |
-| `npm run preview` | локальный просмотр собранного `dist/` |
+| `npm run dev` | dev server + `/api/*` on localhost:3000 |
+| `npm run build` | type-check and production build into `dist/` |
+| `npm run ts` | type-check only |
+| `npm run preview` | preview the built `dist/` locally |
 
-## Как это устроено
+## How it's built
 
-**Данные — на устройстве.** IndexedDB через Dexie, весь доступ идёт через `src/db/repository.ts`. Экраны не знают про Dexie, поэтому облачную синхронизацию можно добавить, не переписывая UI. Реактивность — `useLiveQuery`: вставка записи сама перерисовывает дневник.
+**Data lives on the device.** IndexedDB via Dexie, all access goes through `src/db/repository.ts`. Screens don't know Dexie exists, so cloud sync can be added later without rewriting the UI. Reactivity comes from `useLiveQuery`: inserting an entry redraws the diary on its own.
 
-**КБЖУ хранится на 100 граммов**, не итогом на порцию. Пользователь почти всегда правит вес («не 250, а 180»), и при таком хранении ползунок пересчитывает всё мгновенно, без повторного запроса к модели. Итоговые значения — производные (`portionMacros` в `src/shared/lib/nutrition.ts`).
+**Macros are stored per 100 grams**, not as a portion total. Users almost always adjust the weight ("not 250, make it 180"), and storing per-100g lets the slider recompute instantly without another model call. Portion totals are derived (`portionMacros` in `src/shared/lib/nutrition.ts`).
 
-**Ключ OpenAI живёт только на сервере.** Функции в `api/` — Web-стандартные хендлеры (`export async function POST(request: Request)`), их одинаково исполняют и Vercel в проде, и плагин `devApiRoutes` в `vite.config.ts` локально. Переменная называется `OPENAI_API_KEY` без префикса `VITE_`: с префиксом Vite вшил бы её в клиентский бандл.
+**The OpenAI key only ever lives on the server.** Functions in `api/` are Web-standard handlers (`export async function POST(request: Request)`), executed identically by Vercel in production and by the `devApiRoutes` plugin in `vite.config.ts` locally. The variable is named `OPENAI_API_KEY` with no `VITE_` prefix — with that prefix, Vite would bake it into the client bundle.
 
-**Фото сжимается на клиенте** до 1024 px по длинной стороне (`src/shared/lib/image.ts`). Оригинал с телефона — 3–8 МБ, а base64 раздувает его ещё на треть, тогда как у Vercel лимит тела запроса 4.5 МБ. Заодно это сокращает счёт за vision-токены.
+**Photos are compressed client-side** to 1024 px on the long side (`src/shared/lib/image.ts`). A phone original is 3–8 MB, and base64 inflates that by another third, while Vercel's request body limit is 4.5 MB. It also cuts the vision-token bill.
 
-**Камера — через `<input type="file" capture="environment">`,** а не `getUserMedia`: в standalone-PWA на iOS второй вариант исторически ломается, а file-input открывает нативную камеру и работает везде.
+**The camera opens via `<input type="file" capture="environment">`,** not `getUserMedia`: the latter is historically unreliable in a standalone PWA on iOS, while a file input opens the native camera and works everywhere.
 
-## Модели
+**Barcode lookup proxies Open Food Facts** (`api/barcode.ts`), a free, keyless, community-run database. Coverage is strongest for European and packaged goods and thinner elsewhere — treat it as a fast path for scannable products, not a replacement for photo/text/voice recognition.
 
-Заданы в `api/_shared.ts`, переопределяются через env:
+## Models
 
-- `OPENAI_MODEL` — анализ фото и текста, по умолчанию `gpt-5.6-terra`. Точность оценки порции и есть суть продукта, поэтому не самый дешёвый тариф; `gpt-5.6-luna` дешевле на порядок.
-- `OPENAI_TRANSCRIBE_MODEL` — распознавание речи, по умолчанию `gpt-transcribe`.
+Set in `api/_shared.ts`, overridable via env:
 
-Голосовой ввод идёт в два шага: `MediaRecorder` → `/api/transcribe` → текст → `/api/analyze` в текстовом режиме. Тот же эндпоинт и та же JSON-схема обслуживают фото, текст и голос.
+- `OPENAI_MODEL` — photo and text analysis, defaults to `gpt-5.6-terra`. Portion-estimate accuracy is the product, so this isn't the cheapest tier; `gpt-5.6-luna` is an order of magnitude cheaper.
+- `OPENAI_TRANSCRIBE_MODEL` — speech recognition, defaults to `gpt-transcribe`.
 
-## Деплой на Vercel
+Voice input is a two-step flow: `MediaRecorder` → `/api/transcribe` → text → `/api/analyze` in text mode. The same endpoint and JSON schema serve photo, text, and voice.
 
-1. Залить репозиторий, импортировать проект в Vercel — фреймворк определится как Vite.
-2. В настройках проекта задать переменные: `OPENAI_API_KEY`, `APP_ACCESS_CODE`, при желании `OPENAI_MODEL`.
-3. **Обязательно задать `APP_ACCESS_CODE`.** Без него `/api/analyze` открыт всему интернету, и любой желающий будет жечь ваш ключ. Код вводится один раз в приложении: Профиль → «Код доступа к распознаванию». Дополнительно работает лимит по IP — `RATE_LIMIT_PER_MINUTE`, по умолчанию 20 запросов в минуту.
+## Deploying to Vercel
 
-## Что осознанно не вошло в MVP
+1. Push the repo and import the project into Vercel — it will be detected as a Vite app.
+2. In the project settings, set: `OPENAI_API_KEY`, `APP_ACCESS_CODE`, and optionally `OPENAI_MODEL`.
+3. **Make sure to set `APP_ACCESS_CODE`.** Without it, `/api/analyze` is open to the whole internet and anyone can burn through your key. The code is entered once in the app: Profile → "Recognition access code". An IP-based limit also applies — `RATE_LIMIT_PER_MINUTE`, defaulting to 20 requests per minute.
 
-Статистика за неделю и месяц, трекер воды и веса, штрихкоды, рецепты, синхронизация между устройствами. Схема данных и repository-слой рассчитаны на то, что каждое из этого добавляется отдельно, без переписывания существующих экранов.
+## Deliberately out of scope for the MVP
+
+Weekly/monthly stats, water and body-weight tracking, recipes, cross-device sync. The data model and repository layer are designed so each of these can be added independently, without rewriting existing screens.

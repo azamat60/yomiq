@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const STAGES = [
-  'Разбираем снимок…',
-  'Определяем блюда…',
-  'Оцениваем вес порции…',
-  'Считаем калории и БЖУ…',
+  'Reading the photo…',
+  'Identifying the dishes…',
+  'Estimating portion weight…',
+  'Calculating calories and macros…',
 ];
 
 export function AnalyzingOverlay({ open }: { open: boolean }) {
@@ -27,7 +27,7 @@ export function AnalyzingOverlay({ open }: { open: boolean }) {
       <PlateSpinner />
       <div className="flex flex-col items-center gap-2 text-center">
         <p className="text-[17px] font-semibold">{STAGES[stage]}</p>
-        <p className="text-[13.5px] text-muted">Обычно занимает несколько секунд</p>
+        <p className="text-[13.5px] text-muted">Usually takes a few seconds</p>
       </div>
 
       <div className="flex w-full max-w-xs flex-col gap-2.5">

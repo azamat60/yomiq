@@ -29,7 +29,7 @@ export function GramsStepper({ grams, onChange }: Props) {
             onChange={(e) => onChange(Math.min(MAX_GRAMS, Math.max(0, Number(e.target.value) || 0)))}
             className="tnum w-16 bg-transparent text-center text-[20px] font-bold outline-none"
           />
-          <span className="text-[15px] text-faint">г</span>
+          <span className="text-[15px] text-faint">g</span>
         </label>
         <StepButton label="+" onClick={() => nudge(step)} />
       </div>
@@ -59,7 +59,7 @@ function StepButton({ label, onClick }: { label: string; onClick: () => void }) 
   return (
     <button
       onClick={onClick}
-      aria-label={label === '+' ? 'Больше' : 'Меньше'}
+      aria-label={label === '+' ? 'More' : 'Less'}
       className="grid size-12 shrink-0 place-items-center rounded-full bg-surface-2 text-[24px] font-semibold text-text transition-transform active:scale-90 active:bg-surface-3"
     >
       {label}

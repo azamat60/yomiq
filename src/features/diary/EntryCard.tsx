@@ -25,8 +25,8 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
     const deleted = await deleteEntry(entry.id);
     haptic('warning');
     if (deleted) {
-      toast.show(`«${deleted.name}» удалено`, {
-        label: 'Вернуть',
+      toast.show(`"${deleted.name}" deleted`, {
+        label: 'Undo',
         run: () => void restoreEntry(deleted),
       });
     }
@@ -99,7 +99,7 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
                 <IconWarning size={14} className="shrink-0 text-warn" />
               )}
             </span>
-            <span className="tnum block text-[13px] text-faint">{Math.round(entry.grams)} г</span>
+            <span className="tnum block text-[13px] text-faint">{Math.round(entry.grams)} g</span>
             <span className="mt-1 block">
               <MacroChips macros={macros} />
             </span>
@@ -112,7 +112,7 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
       {offset === -REVEAL_WIDTH && (
         <button
           onClick={() => void remove()}
-          aria-label="Удалить"
+          aria-label="Delete"
           className="absolute inset-y-0 right-0 w-[88px]"
         />
       )}

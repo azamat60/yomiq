@@ -25,7 +25,7 @@ export function VoiceCaptureSheet({ open }: { open: boolean }) {
     haptic('select');
     const audio = await stop();
     if (!audio) {
-      failAnalysis('Запись не получилась. Попробуйте ещё раз.');
+      failAnalysis('Recording failed. Please try again.');
       return;
     }
     void fromVoice(audio);
@@ -38,7 +38,7 @@ export function VoiceCaptureSheet({ open }: { open: boolean }) {
         cancel();
         closeCapture();
       }}
-      title="Расскажите, что вы съели"
+      title="Tell us what you ate"
     >
       <div className="flex flex-col items-center gap-6 py-2">
         <ErrorNotice />
@@ -50,8 +50,8 @@ export function VoiceCaptureSheet({ open }: { open: boolean }) {
 
         <p className="max-w-[17rem] text-center text-[14px] text-muted">
           {recording
-            ? 'Говорите — например: «тарелка борща со сметаной и два куска хлеба»'
-            : 'Нажмите на микрофон и перечислите блюда с примерным количеством'}
+            ? 'Speak now — for example: "a bowl of borscht with sour cream and two slices of bread"'
+            : 'Tap the microphone and list the foods with rough amounts'}
         </p>
 
         <button
@@ -60,7 +60,7 @@ export function VoiceCaptureSheet({ open }: { open: boolean }) {
             if (recording) void finish();
             else void start();
           }}
-          aria-label={recording ? 'Остановить запись' : 'Начать запись'}
+          aria-label={recording ? 'Stop recording' : 'Start recording'}
           className="relative grid size-28 place-items-center rounded-full transition-transform active:scale-95"
           style={{ background: recording ? 'var(--danger)' : 'var(--accent)' }}
         >
@@ -82,13 +82,13 @@ export function VoiceCaptureSheet({ open }: { open: boolean }) {
         <div className="flex flex-col items-center gap-1">
           <span className="tnum text-[22px] font-semibold">{formatDuration(seconds)}</span>
           <span className="text-[12.5px] text-faint">
-            {recording ? `максимум ${maxSeconds} с` : 'Нажмите, чтобы записать'}
+            {recording ? `${maxSeconds}s max` : 'Tap to record'}
           </span>
         </div>
 
         {recording && (
           <Button variant="ghost" onClick={cancel}>
-            Отменить
+            Cancel
           </Button>
         )}
       </div>

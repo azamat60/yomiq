@@ -19,7 +19,7 @@ export function MealSection({ meal, entries }: { meal: Meal; entries: Entry[] })
         <span className="text-[17px]">{MEAL_ICON[meal]}</span>
         <h2 className="flex-1 text-[16px] font-semibold">{MEAL_LABEL[meal]}</h2>
         {entries.length > 0 && (
-          <span className="tnum text-[15px] font-semibold text-muted">{totals.kcal} ккал</span>
+          <span className="tnum text-[15px] font-semibold text-muted">{totals.kcal} kcal</span>
         )}
       </header>
 
@@ -38,7 +38,7 @@ export function MealSection({ meal, entries }: { meal: Meal; entries: Entry[] })
         }}
         className="w-full border-t border-line px-4 py-3 text-left text-[15px] font-medium text-accent active:bg-surface-2"
       >
-        + Добавить
+        + Add
       </button>
 
       <EditEntrySheet entry={editing} onClose={() => setEditing(null)} />

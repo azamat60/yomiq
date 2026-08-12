@@ -59,7 +59,7 @@ export function QuickAddSheet({
     haptic('success');
     setSaving(false);
     onClose();
-    toast.show(`Записано: ${macros.kcal} ккал`);
+    toast.show(`Logged: ${macros.kcal} kcal`);
   };
 
   return (
@@ -70,13 +70,13 @@ export function QuickAddSheet({
 
         <div className="flex flex-col gap-2">
           <span className="px-1 text-[13px] font-medium text-muted">
-            Приём пищи · {formatDayLabel(date)}
+            Meal · {formatDayLabel(date)}
           </span>
           <MealPicker value={meal} onChange={setMeal} />
         </div>
 
         <Button size="lg" block loading={saving} onClick={() => void save()}>
-          Добавить {macros.kcal} ккал
+          Add {macros.kcal} kcal
         </Button>
       </div>
     </Sheet>

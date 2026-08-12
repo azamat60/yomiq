@@ -1,38 +1,38 @@
-import { callOpenAI, checkAccess, fail, json, VISION_MODEL } from './_shared';
+import { callOpenAI, checkAccess, fail, json, VISION_MODEL } from './_shared.js';
 
 const MAX_IMAGE_CHARS = 4_000_000;
 const MAX_TEXT_CHARS = 600;
 
-const SYSTEM_PROMPT = `Ты — нутрициолог, который оценивает питательную ценность еды.
+const SYSTEM_PROMPT = `You are a nutritionist who estimates the nutritional value of food.
 
-По фотографии или описанию определи каждое блюдо и продукт отдельно и оцени его вес.
+From a photo or a description, identify each dish and food item separately and estimate its weight.
 
-Как оценивать вес по фото:
-- Опирайся на видимые ориентиры масштаба: обеденная тарелка ≈ 26 см, десертная ≈ 20 см, вилка ≈ 19 см, чайная ложка ≈ 14 см, стандартный стакан ≈ 250 мл, банка напитка ≈ 330 мл.
-- Учитывай глубину и объём порции, а не только площадь на снимке.
-- Разделяй составные блюда на компоненты: мясо, гарнир, соус, масло, хлеб — отдельными позициями, если их видно.
-- Учитывай видимое масло и заправку — они сильно меняют калорийность.
-- Не включай несъедобное: посуду, приборы, упаковку, салфетки.
+How to estimate weight from a photo:
+- Use visible scale references: a dinner plate is about 26 cm, a dessert plate about 20 cm, a fork about 19 cm, a teaspoon about 14 cm, a standard glass about 250 ml, a drink can about 330 ml.
+- Account for depth and volume of the portion, not just the area visible in the shot.
+- Split composite dishes into components — meat, side, sauce, oil, bread — as separate items when visible.
+- Account for visible oil and dressing — they significantly change calorie counts.
+- Do not include anything inedible: dishware, utensils, packaging, napkins.
 
-Как заполнять КБЖУ:
-- per100 — это калорийность и БЖУ на 100 граммов продукта в готовом виде, по стандартным таблицам состава.
-- grams — оценка веса именно этой порции.
-- Значения на 100 г не должны зависеть от размера порции.
+How to fill in the macros:
+- per100 is the calories and macros per 100 grams of the food as prepared, based on standard nutrition tables.
+- grams is the estimated weight of this specific portion.
+- Per-100g values must not depend on the portion size.
 
-Достоверность:
-- high — блюдо однозначно опознано и порция хорошо видна.
-- medium — блюдо понятно, но объём или состав приходится додумывать.
-- low — состав неочевиден, снимок нечёткий, или блюдо скрыто.
+Confidence:
+- high — the dish is clearly identified and the portion is clearly visible.
+- medium — the dish is clear, but the volume or composition has to be guessed.
+- low — the composition is unclear, the photo is blurry, or the dish is partially hidden.
 
-Названия давай по-русски, коротко (до 40 символов), без слов «примерно» и «около».
-В note добавь короткое уточнение, только если оно правда важно — например, что не видно заправку. Иначе оставь пустую строку.
-Если еды нет вообще — верни пустой список items и объясни это в note.`;
+Give names in English, short (under 40 characters), without words like "approximately" or "about".
+Add a short note only if it's genuinely important — for example, that the dressing isn't visible. Otherwise leave it as an empty string.
+If there's no food at all, return an empty items list and explain why in note.`;
 
 const SCHEMA = {
   type: 'object',
   properties: {
-    title: { type: 'string', description: 'Общее короткое название приёма пищи' },
-    note: { type: 'string', description: 'Короткое уточнение или пустая строка' },
+    title: { type: 'string', description: 'Short overall name for the meal' },
+    note: { type: 'string', description: 'A short clarification, or an empty string' },
     items: {
       type: 'array',
       items: {
@@ -77,7 +77,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     body = (await request.json()) as Body;
   } catch {
-    return fail('Некорректное тело запроса.', 400);
+    return fail('Malformed request body.', 400);
   }
 
   const content = buildContent(body);
@@ -99,12 +99,12 @@ export async function POST(request: Request): Promise<Response> {
 
   const payload = (await response.json()) as unknown;
   const raw = extractOutputText(payload);
-  if (!raw) return fail('Пустой ответ модели.', 502);
+  if (!raw) return fail('Empty response from the model.', 502);
 
   try {
     return json(JSON.parse(raw));
   } catch {
-    return fail('Модель вернула не-JSON.', 502);
+    return fail('The model returned non-JSON output.', 502);
   }
 }
 
@@ -113,25 +113,23 @@ function buildContent(body: Body): { value: unknown[] } | { error: string } {
 
   if (body.mode === 'text') {
     const text = body.text?.trim();
-    if (!text) return { error: 'Опишите, что вы съели.' };
-    if (text.length > MAX_TEXT_CHARS) return { error: 'Описание слишком длинное.' };
+    if (!text) return { error: 'Describe what you ate.' };
+    if (text.length > MAX_TEXT_CHARS) return { error: 'The description is too long.' };
 
     return {
-      value: [{ type: 'input_text', text: `Что я съел: ${text}` }],
+      value: [{ type: 'input_text', text: `What I ate: ${text}` }],
     };
   }
 
   const image = body.image;
-  if (!image?.startsWith('data:image/')) return { error: 'Нужна фотография блюда.' };
-  if (image.length > MAX_IMAGE_CHARS) return { error: 'Фото слишком большое.' };
+  if (!image?.startsWith('data:image/')) return { error: 'A photo of the food is required.' };
+  if (image.length > MAX_IMAGE_CHARS) return { error: 'The photo is too large.' };
 
   return {
     value: [
       {
         type: 'input_text',
-        text: hint
-          ? `Оцени еду на фото. Подсказка от пользователя: ${hint}`
-          : 'Оцени еду на фото.',
+        text: hint ? `Estimate the food in the photo. User hint: ${hint}` : 'Estimate the food in the photo.',
       },
       { type: 'input_image', image_url: image, detail: 'high' },
     ],

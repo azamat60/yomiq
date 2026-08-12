@@ -33,28 +33,31 @@ export class ApiError extends Error {
   }
 }
 
-async function post(path: string, init: RequestInit): Promise<unknown> {
+async function request(path: string, init: RequestInit & { method: string }): Promise<unknown> {
   if (!navigator.onLine) {
-    throw new ApiError('Нет сети. Добавьте блюдо вручную или повторите позже.', 0);
+    throw new ApiError('No connection. Add the item manually or try again later.', 0);
   }
 
   let response: Response;
   try {
     response = await fetch(path, {
       ...init,
-      method: 'POST',
       headers: { ...(init.headers as Record<string, string>), 'x-app-code': getAccessCode() },
     });
   } catch {
-    throw new ApiError('Не удалось связаться с сервером.', 0);
+    throw new ApiError('Could not reach the server.', 0);
   }
 
   const payload = (await response.json().catch(() => ({}))) as { error?: string };
   if (!response.ok) {
-    throw new ApiError(payload.error ?? 'Что-то пошло не так.', response.status);
+    throw new ApiError(payload.error ?? 'Something went wrong.', response.status);
   }
 
   return payload;
+}
+
+function post(path: string, init: RequestInit): Promise<unknown> {
+  return request(path, { ...init, method: 'POST' });
 }
 
 export async function analyzePhoto(image: string, hint?: string): Promise<AnalysisResult> {
@@ -82,6 +85,23 @@ export async function transcribe(audio: Blob): Promise<string> {
   return payload.text ?? '';
 }
 
+export type BarcodeProduct = { name: string; per100: Macros };
+
+export async function lookupBarcode(code: string): Promise<BarcodeProduct> {
+  const payload = await request(`/api/barcode?code=${encodeURIComponent(code)}`, { method: 'GET' });
+  const data = payload as Partial<BarcodeProduct>;
+
+  return {
+    name: String(data.name ?? 'Product').slice(0, 60),
+    per100: {
+      kcal: clamp(data.per100?.kcal, 0, 900, 0),
+      protein: clamp(data.per100?.protein, 0, 100, 0),
+      fat: clamp(data.per100?.fat, 0, 100, 0),
+      carbs: clamp(data.per100?.carbs, 0, 100, 0),
+    },
+  };
+}
+
 /** Model output is untrusted input: clamp it before it reaches the UI or the DB. */
 function normalize(payload: unknown): AnalysisResult {
   const data = payload as Partial<AnalysisResult>;
@@ -90,7 +110,7 @@ function normalize(payload: unknown): AnalysisResult {
     title: String(data.title ?? '').slice(0, 80),
     note: String(data.note ?? '').slice(0, 240),
     items: (Array.isArray(data.items) ? data.items : []).slice(0, 12).map((item) => ({
-      name: String(item?.name ?? 'Блюдо').slice(0, 60),
+      name: String(item?.name ?? 'Food item').slice(0, 60),
       grams: clamp(item?.grams, 1, 5000, 100),
       per100: {
         kcal: clamp(item?.per100?.kcal, 0, 900, 0),

@@ -62,7 +62,7 @@ export function KcalRing({ consumed, target }: Props) {
           {Math.abs(remaining)}
         </span>
         <span className="mt-1.5 text-[13px] font-medium text-muted">
-          {over ? 'ккал перебор' : 'ккал осталось'}
+          {over ? 'kcal over' : 'kcal left'}
         </span>
         <span className="tnum mt-3 text-[13px] text-faint">
           {Math.round(consumed)} / {target}

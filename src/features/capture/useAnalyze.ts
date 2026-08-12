@@ -1,6 +1,12 @@
 import { useCallback } from 'react';
 import type { Draft, Source } from '@/db/types';
-import { analyzePhoto, analyzeText, transcribe, type AnalysisResult } from '@/shared/api/client';
+import {
+  analyzePhoto,
+  analyzeText,
+  lookupBarcode,
+  transcribe,
+  type AnalysisResult,
+} from '@/shared/api/client';
 import { prepareImage } from '@/shared/lib/image';
 import { mealForNow } from '@/shared/lib/date';
 import { haptic } from '@/shared/lib/haptics';
@@ -32,14 +38,14 @@ export function useAnalyze() {
       try {
         const { result, photo } = await task();
         if (result.items.length === 0) {
-          failAnalysis(result.note || 'Еду распознать не удалось. Попробуйте другой снимок.');
+          failAnalysis(result.note || "Couldn't recognize any food. Try another photo.");
           return;
         }
         haptic('success');
         setDraft(toDraft(result, source, photo));
       } catch (error) {
         haptic('warning');
-        failAnalysis(error instanceof Error ? error.message : 'Не удалось разобрать.');
+        failAnalysis(error instanceof Error ? error.message : 'Something went wrong.');
       }
     },
     [failAnalysis, setDraft, startAnalysis, toDraft],
@@ -68,5 +74,20 @@ export function useAnalyze() {
     [run],
   );
 
-  return { fromPhoto, fromText, fromVoice };
+  const fromBarcode = useCallback(
+    (code: string) =>
+      run('barcode', async () => {
+        const product = await lookupBarcode(code);
+        return {
+          result: {
+            title: product.name,
+            note: '',
+            items: [{ name: product.name, grams: 100, per100: product.per100, confidence: 'high' }],
+          },
+        };
+      }),
+    [run],
+  );
+
+  return { fromPhoto, fromText, fromVoice, fromBarcode };
 }

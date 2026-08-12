@@ -69,7 +69,7 @@ export function useRecorder() {
 
       meter(media);
     } catch {
-      setError('Нет доступа к микрофону. Разрешите его в настройках браузера.');
+      setError('No microphone access. Please allow it in your browser settings.');
       cleanup();
       setState('idle');
     }

@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useAppStore } from '@/shared/store/app';
 import { haptic } from '@/shared/lib/haptics';
 import { Sheet } from '@/shared/ui/Sheet';
-import { IconCamera, IconMic, IconPencil, IconText } from '@/shared/ui/icons';
+import { IconBarcode, IconCamera, IconMic, IconPencil, IconText } from '@/shared/ui/icons';
 import { useAnalyze } from './useAnalyze';
 import { ErrorNotice } from './ErrorNotice';
 import { OfflineNotice } from './OfflineNotice';
@@ -17,40 +17,57 @@ export function CaptureMenuSheet({ open }: { open: boolean }) {
   const fileInput = useRef<HTMLInputElement>(null);
 
   return (
-    <Sheet open={open} onClose={closeCapture} title="Добавить еду">
+    <Sheet open={open} onClose={closeCapture} title="Add Food">
       <ErrorNotice />
       {!online && <OfflineNotice />}
 
       <div className="mt-1 grid grid-cols-2 gap-3">
         <Tile
           icon={<IconCamera size={26} />}
-          title="Фото"
-          hint="Снять или выбрать"
+          title="Photo"
+          hint="Take or choose"
           accent
           disabled={!online}
           onClick={() => fileInput.current?.click()}
         />
         <Tile
           icon={<IconMic size={26} />}
-          title="Голос"
-          hint="Надиктовать"
+          title="Voice"
+          hint="Speak it out"
           disabled={!online}
           onClick={() => openCapture('voice', presetMeal ?? undefined)}
         />
         <Tile
           icon={<IconText size={26} />}
-          title="Текст"
-          hint="Описать словами"
+          title="Text"
+          hint="Describe in words"
           disabled={!online}
           onClick={() => openCapture('text', presetMeal ?? undefined)}
         />
         <Tile
           icon={<IconPencil size={26} />}
-          title="Вручную"
-          hint="Ввести КБЖУ"
+          title="Manual"
+          hint="Enter macros"
           onClick={() => openCapture('manual', presetMeal ?? undefined)}
         />
       </div>
+
+      <button
+        disabled={!online}
+        onClick={() => {
+          haptic('select');
+          openCapture('barcode', presetMeal ?? undefined);
+        }}
+        className="mt-3 flex w-full items-center gap-3 rounded-card border border-line bg-surface p-4 text-left transition-transform active:scale-[0.98] active:bg-surface-2 disabled:pointer-events-none disabled:opacity-35"
+      >
+        <span className="text-muted">
+          <IconBarcode size={24} />
+        </span>
+        <span className="flex-1">
+          <span className="block text-[15px] font-semibold">Scan Barcode</span>
+          <span className="block text-[13px] text-muted">Packaged food, instant lookup</span>
+        </span>
+      </button>
 
       {/* `capture` opens the native camera directly, which is the only path that
           works reliably inside a standalone PWA on iOS. */}

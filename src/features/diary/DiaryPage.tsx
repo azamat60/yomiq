@@ -34,7 +34,7 @@ export function DiaryPage() {
         <DateSwitcher />
         <Link
           to="/profile"
-          aria-label="Профиль"
+          aria-label="Profile"
           className="grid size-10 shrink-0 place-items-center rounded-full text-muted active:bg-surface-2"
         >
           <IconUser size={22} />
@@ -62,8 +62,8 @@ export function DiaryPage() {
 function EmptyDayHint() {
   return (
     <p className="mx-auto mt-6 max-w-[16rem] px-4 text-center text-[14px] leading-relaxed text-faint">
-      Пока пусто. Нажмите <span className="font-semibold text-muted">＋</span> внизу — сфотографируйте
-      блюдо, надиктуйте или напишите.
+      Nothing here yet. Tap <span className="font-semibold text-muted">＋</span> below — snap a photo,
+      speak, or type.
     </p>
   );
 }

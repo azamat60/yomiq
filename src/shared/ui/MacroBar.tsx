@@ -3,15 +3,15 @@ import type { Macros } from '@/db/types';
 export type MacroKey = 'protein' | 'fat' | 'carbs';
 
 export const MACRO_LABEL: Record<MacroKey, string> = {
-  protein: 'Белки',
-  fat: 'Жиры',
-  carbs: 'Углеводы',
+  protein: 'Protein',
+  fat: 'Fat',
+  carbs: 'Carbs',
 };
 
 export const MACRO_SHORT: Record<MacroKey, string> = {
-  protein: 'Б',
-  fat: 'Ж',
-  carbs: 'У',
+  protein: 'P',
+  fat: 'F',
+  carbs: 'C',
 };
 
 export const MACRO_COLOR: Record<MacroKey, string> = {
@@ -52,13 +52,13 @@ function MacroBar({ macro, value, target }: { macro: MacroKey; value: number; ta
       </div>
       <span className="tnum text-[13px] font-semibold">
         {Math.round(value)}
-        <span className="font-normal text-faint"> / {Math.round(target)} г</span>
+        <span className="font-normal text-faint"> / {Math.round(target)} g</span>
       </span>
     </div>
   );
 }
 
-/** Compact inline B/Ж/У readout used on entry cards. */
+/** Compact inline P/F/C readout used on entry cards. */
 export function MacroChips({ macros }: { macros: Macros }) {
   return (
     <div className="flex items-center gap-2.5">

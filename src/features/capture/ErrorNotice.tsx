@@ -13,10 +13,10 @@ export function ErrorNotice() {
       <p className="flex-1 text-[14px] leading-snug">{error}</p>
       <button
         onClick={resetAnalysis}
-        aria-label="Скрыть"
+        aria-label="Dismiss"
         className="shrink-0 text-[13px] font-medium text-muted active:opacity-60"
       >
-        Ок
+        OK
       </button>
     </div>
   );

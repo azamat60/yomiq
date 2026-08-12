@@ -35,7 +35,7 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
               </span>
             )}
           </span>
-          <span className="tnum block text-[13px] text-faint">{Math.round(item.grams)} г</span>
+          <span className="tnum block text-[13px] text-faint">{Math.round(item.grams)} g</span>
           <span className="mt-1 block">
             <MacroChips macros={macros} />
           </span>
@@ -55,15 +55,15 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
           <input
             value={item.name}
             onChange={(e) => onChange({ name: e.target.value.slice(0, 60) })}
-            aria-label="Название"
+            aria-label="Name"
             className="rounded-xl border border-line bg-bg px-3 py-2.5 text-[15px] outline-none focus:border-accent"
           />
 
           <GramsStepper grams={item.grams} onChange={(grams) => onChange({ grams })} />
 
           <p className="tnum px-1 text-[12.5px] text-faint">
-            На 100 г: {Math.round(item.per100.kcal)} ккал · Б {round(item.per100.protein)} · Ж{' '}
-            {round(item.per100.fat)} · У {round(item.per100.carbs)}
+            Per 100 g: {Math.round(item.per100.kcal)} kcal · P {round(item.per100.protein)} · F{' '}
+            {round(item.per100.fat)} · C {round(item.per100.carbs)}
           </p>
 
           <button
@@ -71,7 +71,7 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
             className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-[14px] font-medium text-danger active:bg-danger/10"
           >
             <IconTrash size={17} />
-            Убрать позицию
+            Remove item
           </button>
         </div>
       )}

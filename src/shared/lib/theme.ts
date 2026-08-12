@@ -2,9 +2,9 @@ export const THEME = { dark: 'dark', light: 'light', system: 'system' } as const
 export type Theme = keyof typeof THEME;
 
 export const THEME_LABEL: Record<Theme, string> = {
-  dark: 'Тёмная',
-  light: 'Светлая',
-  system: 'Системная',
+  dark: 'Dark',
+  light: 'Light',
+  system: 'System',
 };
 
 const STORAGE_KEY = 'yomiq:theme';

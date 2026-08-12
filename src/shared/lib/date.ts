@@ -27,42 +27,42 @@ export function isFuture(key: string): boolean {
   return key > toDateKey();
 }
 
-const WEEKDAYS = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = [
-  'января',
-  'февраля',
-  'марта',
-  'апреля',
-  'мая',
-  'июня',
-  'июля',
-  'августа',
-  'сентября',
-  'октября',
-  'ноября',
-  'декабря',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 export function formatDayLabel(key: string): string {
   const today = toDateKey();
-  if (key === today) return 'Сегодня';
-  if (key === shiftDateKey(today, -1)) return 'Вчера';
-  if (key === shiftDateKey(today, 1)) return 'Завтра';
+  if (key === today) return 'Today';
+  if (key === shiftDateKey(today, -1)) return 'Yesterday';
+  if (key === shiftDateKey(today, 1)) return 'Tomorrow';
 
   const date = fromDateKey(key);
   const withinWeek = Math.abs(date.getTime() - fromDateKey(today).getTime()) < 6 * 864e5;
-  if (withinWeek) return capitalize(WEEKDAYS[date.getDay()]);
+  if (withinWeek) return WEEKDAYS[date.getDay()];
 
-  return `${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}`;
 }
 
 export function formatFullDate(key: string): string {
   const date = fromDateKey(key);
-  return `${capitalize(WEEKDAYS[date.getDay()])}, ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  return `${WEEKDAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`;
 }
 
 export function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  return new Date(timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
 /** Pre-selects the meal the user most likely means right now. */
@@ -72,8 +72,4 @@ export function mealForNow(date: Date = new Date()): Meal {
   if (hour < 16) return 'lunch';
   if (hour < 22) return 'dinner';
   return 'snack';
-}
-
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
 }

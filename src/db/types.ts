@@ -32,6 +32,7 @@ export const SOURCE = {
   photo: 'photo',
   text: 'text',
   voice: 'voice',
+  barcode: 'barcode',
   manual: 'manual',
   favorite: 'favorite',
 } as const;

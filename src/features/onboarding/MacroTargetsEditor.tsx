@@ -24,7 +24,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
         <span className="tnum block text-[56px] leading-none font-bold tracking-tight text-accent">
           {targets.kcal}
         </span>
-        <span className="mt-1 block text-[14px] text-muted">ккал в день</span>
+        <span className="mt-1 block text-[14px] text-muted">kcal per day</span>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -32,7 +32,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
           <div key={key} className="rounded-tile border border-line bg-surface px-3 py-3.5 text-center">
             <span className="mx-auto mb-2 block h-1 w-8 rounded-full" style={{ background: MACRO_COLOR[key] }} />
             <span className="tnum block text-[22px] font-bold">{targets[key]}</span>
-            <span className="block text-[12px] text-muted">{MACRO_LABEL[key]}, г</span>
+            <span className="block text-[12px] text-muted">{MACRO_LABEL[key]}, g</span>
           </div>
         ))}
       </div>
@@ -40,8 +40,8 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
       {editing ? (
         <div className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4">
           <Field
-            label="Калории"
-            suffix="ккал"
+            label="Calories"
+            suffix="kcal"
             type="number"
             inputMode="numeric"
             value={String(targets.kcal)}
@@ -51,7 +51,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
             <Field
               key={key}
               label={MACRO_LABEL[key]}
-              suffix="г"
+              suffix="g"
               type="number"
               inputMode="numeric"
               value={String(targets[key])}
@@ -61,7 +61,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
 
           {Math.abs(macroKcal - targets.kcal) > 60 && (
             <p className="px-1 text-[13px] text-warn">
-              Из БЖУ выходит {Math.round(macroKcal)} ккал — это расходится с указанной нормой.
+              Macros add up to {Math.round(macroKcal)} kcal — that doesn't match the target above.
             </p>
           )}
 
@@ -72,7 +72,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
             }}
             className="px-1 py-1 text-left text-[14px] font-medium text-muted active:opacity-60"
           >
-            Вернуть расчётные значения
+            Reset to calculated values
           </button>
         </div>
       ) : (
@@ -83,7 +83,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
           }}
           className="px-1 py-1 text-[15px] font-medium text-accent active:opacity-60"
         >
-          Задать норму вручную
+          Set target manually
         </button>
       )}
     </div>

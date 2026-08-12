@@ -16,7 +16,7 @@ export function AppLayout() {
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg-elevated/85 backdrop-blur-xl">
         <div className="mx-auto grid max-w-lg grid-cols-3 items-center px-2">
-          <Tab to="/" label="Дневник" Icon={IconDiary} />
+          <Tab to="/" label="Diary" Icon={IconDiary} />
 
           <div className="flex justify-center">
             <button
@@ -24,14 +24,14 @@ export function AppLayout() {
                 haptic('select');
                 openCapture();
               }}
-              aria-label="Добавить еду"
+              aria-label="Add food"
               className="-mt-7 grid size-16 place-items-center rounded-full bg-accent text-on-accent shadow-[0_10px_28px_-8px_var(--accent)] transition-transform duration-150 active:scale-90"
             >
               <IconPlus size={30} />
             </button>
           </div>
 
-          <Tab to="/favorites" label="Мои блюда" Icon={IconStar} />
+          <Tab to="/favorites" label="My Foods" Icon={IconStar} />
         </div>
         <div className="h-safe-bottom" />
       </nav>

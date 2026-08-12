@@ -48,7 +48,7 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
     haptic('success');
     setSaving(false);
     close();
-    toast.show(`Записано: ${totals.kcal} ккал`);
+    toast.show(`Logged: ${totals.kcal} kcal`);
   };
 
   const addAllToFavorites = async () => {
@@ -62,17 +62,17 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
       ),
     );
     haptic('success');
-    toast.show(items.length > 1 ? 'Блюда в избранном' : 'Блюдо в избранном');
+    toast.show('Added to favorites');
   };
 
   return (
-    <Sheet open onClose={close} title={draft.title || 'Проверьте результат'} tall>
+    <Sheet open onClose={close} title={draft.title || 'Review the result'} tall>
       <div className="flex h-full flex-col gap-4">
         <div className="flex-1 space-y-4">
           {photoUrl && (
             <img
               src={photoUrl}
-              alt="Снимок блюда"
+              alt="Photo of the meal"
               className="h-40 w-full rounded-card object-cover"
             />
           )}
@@ -88,9 +88,9 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
           <div className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between px-1">
               <span className="text-[13px] font-medium text-muted">
-                Распознано: {items.length}
+                Detected: {items.length}
               </span>
-              <span className="text-[12.5px] text-faint">Поправьте вес, если нужно</span>
+              <span className="text-[12.5px] text-faint">Adjust the weight if needed</span>
             </div>
 
             <ul className="flex flex-col gap-2">
@@ -106,20 +106,20 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
 
             {items.length === 0 && (
               <p className="rounded-2xl border border-line bg-surface px-4 py-6 text-center text-[14px] text-faint">
-                Все позиции удалены
+                All items removed
               </p>
             )}
           </div>
 
           <div className="flex flex-col gap-2">
             <span className="px-1 text-[13px] font-medium text-muted">
-              Приём пищи · {formatDayLabel(draft.date)}
+              Meal · {formatDayLabel(draft.date)}
             </span>
             <MealPicker value={meal} onChange={setMeal} />
           </div>
 
           <Button variant="secondary" block onClick={() => void addAllToFavorites()}>
-            Сохранить в избранное
+            Save to favorites
           </Button>
         </div>
 
@@ -131,7 +131,7 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
             disabled={items.length === 0}
             onClick={() => void save()}
           >
-            Добавить {totals.kcal} ккал
+            Add {totals.kcal} kcal
           </Button>
         </div>
       </div>

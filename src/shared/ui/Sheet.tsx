@@ -67,7 +67,7 @@ export function Sheet({ open, onClose, title, tall, children }: Props) {
       aria-label={title}
     >
       <button
-        aria-label="Закрыть"
+        aria-label="Close"
         onClick={onClose}
         style={{ opacity: open ? Math.max(0, 1 - offset / 320) : 0 }}
         className="absolute inset-0 bg-black/55 backdrop-blur-[2px] transition-opacity duration-200"

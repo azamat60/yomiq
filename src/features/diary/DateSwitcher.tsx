@@ -19,7 +19,7 @@ export function DateSwitcher() {
     <div className="flex flex-1 items-center gap-1">
       <button
         onClick={() => shift(-1)}
-        aria-label="Предыдущий день"
+        aria-label="Previous day"
         className="grid size-10 place-items-center rounded-full text-muted active:bg-surface-2"
       >
         <IconChevronLeft size={22} />
@@ -40,7 +40,7 @@ export function DateSwitcher() {
       <button
         onClick={() => shift(1)}
         disabled={isToday(date)}
-        aria-label="Следующий день"
+        aria-label="Next day"
         className="grid size-10 place-items-center rounded-full text-muted transition-opacity active:bg-surface-2 disabled:opacity-25"
       >
         <IconChevronRight size={22} />

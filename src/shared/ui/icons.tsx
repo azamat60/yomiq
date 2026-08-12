@@ -135,6 +135,17 @@ export const IconWarning = (p: IconProps) => (
   </Icon>
 );
 
+export const IconBarcode = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 5v14" />
+    <path d="M8 5v14" />
+    <path d="M11 5v14" />
+    <path d="M13.5 5v14" />
+    <path d="M17 5v14" />
+    <path d="M20 5v14" />
+  </Icon>
+);
+
 export const IconOffline = (p: IconProps) => (
   <Icon {...p}>
     <path d="M3 3l18 18" />

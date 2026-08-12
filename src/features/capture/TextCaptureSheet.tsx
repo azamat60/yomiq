@@ -7,9 +7,9 @@ import { useAnalyze } from './useAnalyze';
 import { ErrorNotice } from './ErrorNotice';
 
 const EXAMPLES = [
-  'Овсянка на молоке и банан',
-  'Куриная грудка 200 г с гречкой',
-  'Два яйца, тост с авокадо, кофе с молоком',
+  'Oatmeal with milk and a banana',
+  'Chicken breast 200g with buckwheat',
+  'Two eggs, avocado toast, coffee with milk',
 ];
 
 export function TextCaptureSheet({ open }: { open: boolean }) {
@@ -31,7 +31,7 @@ export function TextCaptureSheet({ open }: { open: boolean }) {
   };
 
   return (
-    <Sheet open={open} onClose={closeCapture} title="Что вы съели?">
+    <Sheet open={open} onClose={closeCapture} title="What did you eat?">
       <div className="flex flex-col gap-4">
         <ErrorNotice />
 
@@ -41,12 +41,12 @@ export function TextCaptureSheet({ open }: { open: boolean }) {
           onChange={(e) => setText(e.target.value)}
           rows={3}
           maxLength={600}
-          placeholder="Например: тарелка борща со сметаной и кусок хлеба"
+          placeholder="For example: a bowl of borscht with sour cream and a slice of bread"
           className="w-full resize-none rounded-2xl border border-line bg-surface px-4 py-3.5 leading-snug outline-none placeholder:text-faint focus:border-accent"
         />
 
         <div className="flex flex-col gap-2">
-          <span className="px-1 text-[13px] text-faint">Примеры</span>
+          <span className="px-1 text-[13px] text-faint">Examples</span>
           <div className="flex flex-col gap-1.5">
             {EXAMPLES.map((example) => (
               <button
@@ -65,7 +65,7 @@ export function TextCaptureSheet({ open }: { open: boolean }) {
         </div>
 
         <Button size="lg" block disabled={!text.trim()} onClick={submit}>
-          Посчитать
+          Calculate
         </Button>
       </div>
     </Sheet>

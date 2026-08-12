@@ -36,13 +36,13 @@ export function FavoritesPage() {
   return (
     <div className="flex flex-col">
       <header className="sticky top-0 z-30 border-b border-line bg-bg/85 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
-        <h1 className="mb-3 text-[24px] font-bold tracking-tight">Мои блюда</h1>
+        <h1 className="mb-3 text-[24px] font-bold tracking-tight">My Foods</h1>
         <label className="flex items-center gap-2.5 rounded-full border border-line bg-surface px-4 py-2.5 focus-within:border-accent">
           <IconSearch size={19} className="shrink-0 text-faint" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Найти блюдо"
+            placeholder="Search foods"
             className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-faint"
           />
         </label>
@@ -51,7 +51,7 @@ export function FavoritesPage() {
       <div className="flex flex-col gap-6 px-4 py-5">
         {filtered.length > 0 && (
           <section className="flex flex-col gap-2">
-            <SectionTitle icon={<IconStar size={16} />} title="Избранное" />
+            <SectionTitle icon={<IconStar size={16} />} title="Favorites" />
             <ul className="overflow-hidden rounded-card border border-line bg-surface">
               {filtered.map((favorite) => (
                 <FavoriteRow
@@ -61,7 +61,7 @@ export function FavoritesPage() {
                   onDelete={async () => {
                     await deleteFavorite(favorite.id);
                     haptic('warning');
-                    toast.show(`«${favorite.name}» убрано`);
+                    toast.show(`"${favorite.name}" removed`);
                   }}
                 />
               ))}
@@ -71,7 +71,7 @@ export function FavoritesPage() {
 
         {!query && notYetSaved.length > 0 && (
           <section className="flex flex-col gap-2">
-            <SectionTitle icon={<IconRepeat size={16} />} title="Недавнее" />
+            <SectionTitle icon={<IconRepeat size={16} />} title="Recent" />
             <ul className="overflow-hidden rounded-card border border-line bg-surface">
               {notYetSaved.map((entry) => (
                 <li key={entry.id} className="flex items-center border-b border-line last:border-b-0">
@@ -92,8 +92,8 @@ export function FavoritesPage() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[15.5px] font-medium">{entry.name}</span>
                       <span className="tnum block text-[13px] text-faint">
-                        {Math.round(entry.grams)} г ·{' '}
-                        {portionMacros(entry.per100, entry.grams).kcal} ккал
+                        {Math.round(entry.grams)} g ·{' '}
+                        {portionMacros(entry.per100, entry.grams).kcal} kcal
                       </span>
                     </span>
                   </button>
@@ -106,9 +106,9 @@ export function FavoritesPage() {
                         defaultGrams: Math.round(entry.grams),
                       });
                       haptic('success');
-                      toast.show(`«${entry.name}» в избранном`);
+                      toast.show(`"${entry.name}" added to favorites`);
                     }}
-                    aria-label={`Добавить ${entry.name} в избранное`}
+                    aria-label={`Add ${entry.name} to favorites`}
                     className="grid size-11 shrink-0 place-items-center text-faint active:text-accent"
                   >
                     <IconStar size={19} />
@@ -124,7 +124,7 @@ export function FavoritesPage() {
         )}
 
         {query && filtered.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-faint">Ничего не найдено</p>
+          <p className="py-8 text-center text-[14px] text-faint">No results found</p>
         )}
       </div>
 
@@ -165,7 +165,7 @@ function FavoriteRow({
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15.5px] font-medium">{favorite.name}</span>
           <span className="tnum block text-[13px] text-faint">
-            {favorite.defaultGrams} г · {macros.kcal} ккал
+            {favorite.defaultGrams} g · {macros.kcal} kcal
           </span>
           <span className="mt-1 block">
             <MacroChips macros={macros} />
@@ -175,7 +175,7 @@ function FavoriteRow({
 
       <button
         onClick={onDelete}
-        aria-label={`Убрать ${favorite.name}`}
+        aria-label={`Remove ${favorite.name}`}
         className="grid size-11 shrink-0 place-items-center text-faint active:text-danger"
       >
         <IconTrash size={18} />
@@ -189,12 +189,12 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
     <div className="flex flex-col items-center gap-4 py-14 text-center">
       <span className="text-[40px]">⭐️</span>
       <p className="max-w-[16rem] text-[14.5px] leading-relaxed text-muted">
-        Здесь окажутся блюда, которые вы едите часто. Сохраните любое из редактора после
-        распознавания — и добавляйте его одним тапом.
+        Foods you eat often will show up here. Save any item from the editor after recognition —
+        then add it in one tap.
       </p>
       <Button variant="secondary" onClick={onAdd}>
         <IconPlus size={18} />
-        Добавить вручную
+        Add manually
       </Button>
     </div>
   );

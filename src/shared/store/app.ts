@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { Draft, Meal } from '@/db/types';
 import { toDateKey } from '@/shared/lib/date';
 
-export type CaptureMode = 'menu' | 'text' | 'voice' | 'manual';
+export type CaptureMode = 'menu' | 'text' | 'voice' | 'manual' | 'barcode';
 export type AnalysisStatus = 'idle' | 'loading' | 'error';
 
 type AppState = {

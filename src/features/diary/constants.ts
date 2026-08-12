@@ -3,10 +3,10 @@ import type { Confidence, Meal, Source } from '@/db/types';
 export const MEAL_ORDER: Meal[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 export const MEAL_LABEL: Record<Meal, string> = {
-  breakfast: 'Завтрак',
-  lunch: 'Обед',
-  dinner: 'Ужин',
-  snack: 'Перекус',
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  snack: 'Snack',
 };
 
 export const MEAL_ICON: Record<Meal, string> = {
@@ -17,15 +17,16 @@ export const MEAL_ICON: Record<Meal, string> = {
 };
 
 export const SOURCE_LABEL: Record<Source, string> = {
-  photo: 'по фото',
-  text: 'из текста',
-  voice: 'голосом',
-  manual: 'вручную',
-  favorite: 'из избранного',
+  photo: 'from a photo',
+  text: 'from text',
+  voice: 'by voice',
+  barcode: 'from a barcode',
+  manual: 'manually',
+  favorite: 'from favorites',
 };
 
 export const CONFIDENCE_LABEL: Record<Confidence, string> = {
-  low: 'низкая точность',
-  medium: 'средняя точность',
-  high: 'высокая точность',
+  low: 'low confidence',
+  medium: 'medium confidence',
+  high: 'high confidence',
 };

@@ -25,10 +25,10 @@ export function ProfilePage() {
 
   if (!profile) return null;
 
-  const bodyLine = `${profile.sex === 'male' ? 'М' : 'Ж'} · ${profile.age} лет · ${profile.heightCm} см · ${profile.weightKg} кг`;
+  const bodyLine = `${profile.sex === 'male' ? 'M' : 'F'} · ${profile.age} yrs · ${profile.heightCm} cm · ${profile.weightKg} kg`;
 
   const reset = async () => {
-    if (!confirm('Удалить профиль и все записи? Это необратимо.')) return;
+    if (!confirm('Delete your profile and all entries? This cannot be undone.')) return;
     await clearAllData();
     location.href = '/';
   };
@@ -41,7 +41,7 @@ export function ProfilePage() {
     link.download = `yomiq-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    toast.show('Файл выгружен');
+    toast.show('File exported');
   };
 
   return (
@@ -49,34 +49,34 @@ export function ProfilePage() {
       <header className="sticky top-0 z-30 flex items-center gap-1 border-b border-line bg-bg/85 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
         <Link
           to="/"
-          aria-label="Назад"
+          aria-label="Back"
           className="grid size-10 place-items-center rounded-full text-muted active:bg-surface-2"
         >
           <IconChevronLeft />
         </Link>
-        <h1 className="text-[24px] font-bold tracking-tight">Профиль</h1>
+        <h1 className="text-[24px] font-bold tracking-tight">Profile</h1>
       </header>
 
       <div className="flex flex-col gap-6 px-4 py-5">
         <section className="flex flex-col gap-2">
           <MacroSummary macros={profile.targets} />
           <p className="px-1 text-center text-[12.5px] text-faint">
-            {profile.targetsOverridden ? 'Норма задана вручную' : 'Норма рассчитана автоматически'}
+            {profile.targetsOverridden ? 'Target set manually' : 'Target calculated automatically'}
           </p>
         </section>
 
-        <Group title="Данные">
-          <Row label="Параметры тела" value={bodyLine} onClick={() => setSheet('body')} />
+        <Group title="Data">
+          <Row label="Body stats" value={bodyLine} onClick={() => setSheet('body')} />
           <Row
-            label="Дневная норма"
-            value={`${profile.targets.kcal} ккал`}
+            label="Daily target"
+            value={`${profile.targets.kcal} kcal`}
             onClick={() => setSheet('targets')}
           />
         </Group>
 
-        <Group title="Приложение">
+        <Group title="App">
           <div className="flex flex-col gap-2.5 px-4 py-3.5">
-            <span className="text-[13px] font-medium text-muted">Тема</span>
+            <span className="text-[13px] font-medium text-muted">Theme</span>
             <SegmentedControl
               value={theme}
               onChange={(value) => {
@@ -90,22 +90,22 @@ export function ProfilePage() {
             />
           </div>
           <Row
-            label="Код доступа к распознаванию"
-            value={getAccessCode() ? 'Задан' : 'Не задан'}
+            label="Recognition access code"
+            value={getAccessCode() ? 'Set' : 'Not set'}
             onClick={() => setSheet('access')}
           />
         </Group>
 
-        <Group title="Данные дневника">
-          <Row label="Выгрузить в JSON" value="" onClick={() => void download()} />
+        <Group title="Diary Data">
+          <Row label="Export to JSON" value="" onClick={() => void download()} />
         </Group>
 
         <Button variant="danger" block onClick={() => void reset()}>
-          Удалить все данные
+          Delete All Data
         </Button>
 
         <p className="pb-2 text-center text-[12px] text-faint">
-          Yomiq · записи хранятся только на этом устройстве
+          Yomiq · entries are stored only on this device
         </p>
       </div>
 
@@ -113,14 +113,14 @@ export function ProfilePage() {
         open={sheet === 'body'}
         onClose={() => setSheet(null)}
         profile={profile}
-        onSaved={() => toast.show('Параметры обновлены')}
+        onSaved={() => toast.show('Stats updated')}
       />
       <TargetsSheet
         open={sheet === 'targets'}
         onClose={() => setSheet(null)}
         targets={profile.targets}
         computed={() => calculateTargets(profile)}
-        onSaved={() => toast.show('Норма обновлена')}
+        onSaved={() => toast.show('Target updated')}
       />
       <AccessCodeSheet open={sheet === 'access'} onClose={() => setSheet(null)} />
     </div>
@@ -187,43 +187,43 @@ function BodySheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Параметры тела" tall>
+    <Sheet open={open} onClose={onClose} title="Body Stats" tall>
       <div className="flex flex-col gap-4">
         <SegmentedControl
           value={form.sex}
           onChange={(sex) => setForm({ ...form, sex })}
           options={[
-            { value: 'male', label: 'Мужской' },
-            { value: 'female', label: 'Женский' },
+            { value: 'male', label: 'Male' },
+            { value: 'female', label: 'Female' },
           ]}
         />
 
         <Field
-          label="Возраст"
-          suffix="лет"
+          label="Age"
+          suffix="yrs"
           type="number"
           inputMode="numeric"
           value={String(form.age)}
           onChange={(e) => setForm({ ...form, age: Number(e.target.value) })}
         />
         <Field
-          label="Рост"
-          suffix="см"
+          label="Height"
+          suffix="cm"
           type="number"
           inputMode="numeric"
           value={String(form.heightCm)}
           onChange={(e) => setForm({ ...form, heightCm: Number(e.target.value) })}
         />
         <Field
-          label="Вес"
-          suffix="кг"
+          label="Weight"
+          suffix="kg"
           type="number"
           inputMode="decimal"
           value={String(form.weightKg)}
           onChange={(e) => setForm({ ...form, weightKg: Number(e.target.value) })}
         />
 
-        <span className="px-1 text-[13px] font-medium text-muted">Активность</span>
+        <span className="px-1 text-[13px] font-medium text-muted">Activity level</span>
         <div className="flex flex-col gap-2">
           {ACTIVITY_OPTIONS.map((option) => (
             <OptionRow
@@ -235,7 +235,7 @@ function BodySheet({
           ))}
         </div>
 
-        <span className="px-1 text-[13px] font-medium text-muted">Цель</span>
+        <span className="px-1 text-[13px] font-medium text-muted">Goal</span>
         <div className="flex flex-col gap-2">
           {GOAL_OPTIONS.map((option) => (
             <OptionRow
@@ -248,7 +248,7 @@ function BodySheet({
         </div>
 
         <Button size="lg" block onClick={() => void save()}>
-          Сохранить
+          Save
         </Button>
       </div>
     </Sheet>
@@ -285,11 +285,11 @@ function TargetsSheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Дневная норма" tall>
+    <Sheet open={open} onClose={onClose} title="Daily Target" tall>
       <div className="flex flex-col gap-5">
         <MacroTargetsEditor targets={draft} onChange={setDraft} onReset={() => setDraft(computed())} />
         <Button size="lg" block onClick={() => void save()}>
-          Сохранить
+          Save
         </Button>
       </div>
     </Sheet>
@@ -304,14 +304,14 @@ function AccessCodeSheet({ open, onClose }: { open: boolean; onClose: () => void
   }, [open]);
 
   return (
-    <Sheet open={open} onClose={onClose} title="Код доступа">
+    <Sheet open={open} onClose={onClose} title="Access Code">
       <div className="flex flex-col gap-4">
         <p className="text-[14px] leading-snug text-muted">
-          Нужен, только если на сервере задан <code className="text-text">APP_ACCESS_CODE</code>. Он
-          защищает распознавание от чужих запросов на ваш ключ OpenAI.
+          Only needed if <code className="text-text">APP_ACCESS_CODE</code> is set on the server. It
+          protects recognition from other people's requests hitting your OpenAI key.
         </p>
         <Field
-          label="Код"
+          label="Code"
           type="password"
           autoComplete="off"
           value={code}
@@ -326,7 +326,7 @@ function AccessCodeSheet({ open, onClose }: { open: boolean; onClose: () => void
             onClose();
           }}
         >
-          Сохранить
+          Save
         </Button>
       </div>
     </Sheet>

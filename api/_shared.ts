@@ -32,7 +32,7 @@ export function requireApiKey(): string | null {
 export function checkAccess(request: Request): Response | null {
   const expected = process.env.APP_ACCESS_CODE;
   if (expected && request.headers.get('x-app-code') !== expected) {
-    return fail('Неверный код доступа. Введите его в профиле.', 401);
+    return fail('Invalid access code. Enter it in your profile.', 401);
   }
 
   const ip =
@@ -43,7 +43,7 @@ export function checkAccess(request: Request): Response | null {
   const now = Date.now();
   const recent = (hits.get(ip) ?? []).filter((time) => now - time < WINDOW_MS);
   if (recent.length >= RATE_LIMIT) {
-    return fail('Слишком много запросов. Подождите минуту.', 429);
+    return fail('Too many requests. Please wait a minute.', 429);
   }
   recent.push(now);
   hits.set(ip, recent);
@@ -53,7 +53,7 @@ export function checkAccess(request: Request): Response | null {
 
 export async function callOpenAI(path: string, init: RequestInit): Promise<Response> {
   const key = requireApiKey();
-  if (!key) return fail('OPENAI_API_KEY не задан на сервере.', 500);
+  if (!key) return fail('OPENAI_API_KEY is not set on the server.', 500);
 
   const response = await fetch(`${OPENAI_BASE}${path}`, {
     ...init,
@@ -65,8 +65,8 @@ export async function callOpenAI(path: string, init: RequestInit): Promise<Respo
     console.error(`[openai] ${path} ${response.status}: ${detail.slice(0, 800)}`);
     return fail(
       response.status === 429
-        ? 'OpenAI ограничил частоту запросов. Попробуйте через минуту.'
-        : 'OpenAI не смог обработать запрос.',
+        ? 'OpenAI rate-limited the request. Please try again in a minute.'
+        : 'OpenAI could not process the request.',
       502,
     );
   }

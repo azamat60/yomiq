@@ -67,25 +67,25 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
     haptic('success');
     setSaving(false);
     closeCapture();
-    toast.show(`Записано: ${portionMacros(per100, grams).kcal} ккал`);
+    toast.show(`Logged: ${portionMacros(per100, grams).kcal} kcal`);
   };
 
   return (
-    <Sheet open={open} onClose={closeCapture} title="Ввести вручную" tall>
+    <Sheet open={open} onClose={closeCapture} title="Enter Manually" tall>
       <div className="flex flex-col gap-4">
         <Field
-          label="Название"
-          placeholder="Творог 5%"
+          label="Name"
+          placeholder="Cottage cheese 5%"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
         <div className="flex flex-col gap-2">
-          <span className="px-1 text-[13px] font-medium text-muted">На 100 граммов</span>
+          <span className="px-1 text-[13px] font-medium text-muted">Per 100 grams</span>
           <div className="grid grid-cols-2 gap-2">
             <Field
-              label="Калории"
-              suffix="ккал"
+              label="Calories"
+              suffix="kcal"
               type="number"
               inputMode="numeric"
               placeholder="0"
@@ -96,7 +96,7 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
               <Field
                 key={key}
                 label={MACRO_LABEL[key]}
-                suffix="г"
+                suffix="g"
                 type="number"
                 inputMode="decimal"
                 placeholder="0"
@@ -108,14 +108,14 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="px-1 text-[13px] font-medium text-muted">Вес порции</span>
+          <span className="px-1 text-[13px] font-medium text-muted">Portion weight</span>
           <GramsStepper grams={grams} onChange={setGrams} />
         </div>
 
         {per100.kcal > 0 && <MacroSummary macros={portionMacros(per100, grams)} />}
 
         <div className="flex flex-col gap-2">
-          <span className="px-1 text-[13px] font-medium text-muted">Приём пищи</span>
+          <span className="px-1 text-[13px] font-medium text-muted">Meal</span>
           <MealPicker value={meal} onChange={setMeal} />
         </div>
 
@@ -126,11 +126,11 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
             onChange={(e) => setRemember(e.target.checked)}
             className="size-5 accent-[var(--accent)]"
           />
-          <span className="text-[15px]">Сохранить в «Мои блюда»</span>
+          <span className="text-[15px]">Save to "My Foods"</span>
         </label>
 
         <Button size="lg" block loading={saving} disabled={!valid} onClick={() => void save()}>
-          Добавить
+          Add
         </Button>
       </div>
     </Sheet>

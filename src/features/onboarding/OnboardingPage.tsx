@@ -80,7 +80,7 @@ export function OnboardingPage() {
         {step > 0 ? (
           <button
             onClick={() => setStep((current) => current - 1)}
-            aria-label="Назад"
+            aria-label="Back"
             className="-ml-2 grid size-10 place-items-center rounded-full text-muted active:bg-surface-2"
           >
             <IconChevronLeft />
@@ -106,40 +106,40 @@ export function OnboardingPage() {
         {step === 0 && <IntroStep />}
 
         {step === 1 && (
-          <StepShell title="Ваш пол" hint="Нужен для формулы основного обмена">
+          <StepShell title="Your sex" hint="Needed for the metabolic rate formula">
             <SegmentedControl
               value={form.sex}
               onChange={(value) => set('sex', value)}
               options={[
-                { value: 'male', label: 'Мужской' },
-                { value: 'female', label: 'Женский' },
+                { value: 'male', label: 'Male' },
+                { value: 'female', label: 'Female' },
               ]}
             />
           </StepShell>
         )}
 
         {step === 2 && (
-          <StepShell title="Параметры тела" hint="Можно поменять в любой момент">
+          <StepShell title="Body stats" hint="You can change these anytime">
             <div className="flex flex-col gap-3">
               <Field
-                label="Возраст"
-                suffix="лет"
+                label="Age"
+                suffix="yrs"
                 type="number"
                 inputMode="numeric"
                 value={form.age}
                 onChange={(e) => set('age', e.target.value)}
               />
               <Field
-                label="Рост"
-                suffix="см"
+                label="Height"
+                suffix="cm"
                 type="number"
                 inputMode="numeric"
                 value={form.heightCm}
                 onChange={(e) => set('heightCm', e.target.value)}
               />
               <Field
-                label="Вес"
-                suffix="кг"
+                label="Weight"
+                suffix="kg"
                 type="number"
                 inputMode="decimal"
                 value={form.weightKg}
@@ -147,13 +147,13 @@ export function OnboardingPage() {
               />
             </div>
             {!bodyValid && (
-              <p className="px-1 text-[13px] text-muted">Проверьте значения — что-то выглядит не так.</p>
+              <p className="px-1 text-[13px] text-muted">Double-check these values — something looks off.</p>
             )}
           </StepShell>
         )}
 
         {step === 3 && (
-          <StepShell title="Активность" hint="Считая работу и тренировки">
+          <StepShell title="Activity level" hint="Counting both work and workouts">
             <div className="flex flex-col gap-2">
               {ACTIVITY_OPTIONS.map((option) => (
                 <OptionRow
@@ -168,7 +168,7 @@ export function OnboardingPage() {
         )}
 
         {step === 4 && (
-          <StepShell title="Цель" hint="От неё зависит дневная норма">
+          <StepShell title="Your goal" hint="This sets your daily target">
             <div className="flex flex-col gap-2">
               {GOAL_OPTIONS.map((option) => (
                 <OptionRow
@@ -183,7 +183,7 @@ export function OnboardingPage() {
         )}
 
         {step === 5 && targets && (
-          <StepShell title="Ваша норма" hint="Рассчитана по формуле Миффлина — Сан Жеора">
+          <StepShell title="Your daily target" hint="Calculated with the Mifflin-St Jeor formula">
             <MacroTargetsEditor
               targets={targets}
               onChange={setTargets}
@@ -196,11 +196,11 @@ export function OnboardingPage() {
       <footer className="pt-2">
         {step === STEPS.length - 1 ? (
           <Button size="lg" block loading={saving} onClick={finish}>
-            Начать вести дневник
+            Start tracking
           </Button>
         ) : (
           <Button size="lg" block disabled={!canAdvance} onClick={goNext}>
-            {step === 0 ? 'Поехали' : 'Далее'}
+            {step === 0 ? "Let's go" : 'Next'}
           </Button>
         )}
       </footer>
@@ -235,13 +235,13 @@ function IntroStep() {
       <div className="flex flex-col gap-2">
         <h1 className="text-[34px] leading-tight font-bold tracking-tight">Yomiq</h1>
         <p className="max-w-xs text-[16px] text-muted">
-          Сфотографируйте тарелку, надиктуйте или напишите — калории и БЖУ посчитаются сами.
+          Snap a photo, speak, or type — calories and macros get calculated for you.
         </p>
       </div>
       <ul className="flex flex-col gap-2.5 text-left text-[15px] text-muted">
-        <li>📸 Фото блюда → вес и калорийность</li>
-        <li>🎙 Голос и текст вместо поиска по базе</li>
-        <li>⭐️ Частые блюда — в один тап</li>
+        <li>📸 Photo of a meal → weight and calories</li>
+        <li>🎙 Voice and text instead of searching a database</li>
+        <li>⭐️ Frequent meals — added in one tap</li>
       </ul>
     </section>
   );
