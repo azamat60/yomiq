@@ -71,6 +71,21 @@ export function portionMacros(per100: Macros, grams: number): Macros {
   };
 }
 
+/**
+ * Inverse of portionMacros. The user judges the numbers for the portion in
+ * front of them, so corrections are entered there and folded back into the
+ * per-100g figure the database actually stores.
+ */
+export function per100FromPortion(portion: Macros, grams: number): Macros {
+  const k = 100 / Math.max(1, grams);
+  return {
+    kcal: round1(portion.kcal * k),
+    protein: round1(portion.protein * k),
+    fat: round1(portion.fat * k),
+    carbs: round1(portion.carbs * k),
+  };
+}
+
 export function sumMacros(list: Macros[]): Macros {
   return list.reduce<Macros>(
     (acc, m) => ({

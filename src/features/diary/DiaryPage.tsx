@@ -51,7 +51,12 @@ export function DiaryPage() {
       {/* Each card carries its own empty state, so no separate page-level hint. */}
       <div className="flex flex-col gap-2.5 px-4">
         {MEAL_ORDER.map((meal) => (
-          <MealSection key={meal} meal={meal} entries={byMeal[meal]} />
+          <MealSection
+            key={meal}
+            meal={meal}
+            entries={byMeal[meal]}
+            dailyKcal={targets.kcal}
+          />
         ))}
       </div>
     </div>

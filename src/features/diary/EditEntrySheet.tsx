@@ -1,35 +1,43 @@
 import { useEffect, useState } from 'react';
-import type { Entry, Meal } from '@/db/types';
+import type { Entry, Macros, Meal } from '@/db/types';
 import { deleteEntry, restoreEntry, saveFavorite, updateEntry } from '@/db/repository';
-import { portionMacros } from '@/shared/lib/nutrition';
+import { per100FromPortion, portionMacros } from '@/shared/lib/nutrition';
 import { haptic } from '@/shared/lib/haptics';
 import { Sheet } from '@/shared/ui/Sheet';
 import { Button } from '@/shared/ui/Button';
 import { GramsStepper } from '@/shared/ui/GramsStepper';
+import { MacroFields } from '@/shared/ui/MacroFields';
 import { MealPicker } from '@/shared/ui/MealPicker';
 import { MacroSummary } from '@/shared/ui/MacroSummary';
 import { useToast } from '@/shared/ui/Toast';
 import { IconStar, IconTrash } from '@/shared/ui/icons';
 import { SOURCE_LABEL } from './constants';
 
+const EMPTY_MACROS: Macros = { kcal: 0, protein: 0, fat: 0, carbs: 0 };
+
 export function EditEntrySheet({ entry, onClose }: { entry: Entry | null; onClose: () => void }) {
   const toast = useToast();
   const [grams, setGrams] = useState(0);
   const [meal, setMeal] = useState<Meal>('breakfast');
+  const [per100, setPer100] = useState<Macros>(EMPTY_MACROS);
 
   useEffect(() => {
     if (!entry) return;
     setGrams(entry.grams);
     setMeal(entry.meal);
+    setPer100(entry.per100);
   }, [entry]);
 
   if (!entry) return null;
 
-  const macros = portionMacros(entry.per100, grams);
-  const changed = grams !== entry.grams || meal !== entry.meal;
+  const macros = portionMacros(per100, grams);
+  const changed =
+    grams !== entry.grams ||
+    meal !== entry.meal ||
+    JSON.stringify(per100) !== JSON.stringify(entry.per100);
 
   const save = async () => {
-    await updateEntry(entry.id, { grams: Math.round(grams), meal });
+    await updateEntry(entry.id, { grams: Math.round(grams), meal, per100 });
     haptic('success');
     onClose();
   };
@@ -61,6 +69,16 @@ export function EditEntrySheet({ entry, onClose }: { entry: Entry | null; onClos
 
         <MacroSummary macros={macros} />
         <GramsStepper grams={grams} onChange={setGrams} />
+
+        <div className="flex flex-col gap-2">
+          <span className="px-1 text-[13px] font-medium text-muted">
+            Values for {Math.round(grams)} g
+          </span>
+          <MacroFields
+            macros={macros}
+            onChange={(portion) => setPer100(per100FromPortion(portion, grams))}
+          />
+        </div>
 
         <div className="flex flex-col gap-2">
           <span className="px-1 text-[13px] font-medium text-muted">Meal</span>

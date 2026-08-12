@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import type { DraftItem } from '@/db/types';
-import { portionMacros } from '@/shared/lib/nutrition';
+import { per100FromPortion, portionMacros } from '@/shared/lib/nutrition';
 import { haptic } from '@/shared/lib/haptics';
 import { GramsStepper } from '@/shared/ui/GramsStepper';
+import { MacroFields } from '@/shared/ui/MacroFields';
 import { MacroChips } from '@/shared/ui/MacroBar';
 import { IconChevronRight, IconTrash, IconWarning } from '@/shared/ui/icons';
 import { CONFIDENCE_LABEL } from '@/features/diary/constants';
@@ -60,6 +61,16 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
           />
 
           <GramsStepper grams={item.grams} onChange={(grams) => onChange({ grams })} />
+
+          <div className="flex flex-col gap-2">
+            <span className="px-1 text-[12.5px] font-medium text-muted">
+              Values for {Math.round(item.grams)} g
+            </span>
+            <MacroFields
+              macros={macros}
+              onChange={(portion) => onChange({ per100: per100FromPortion(portion, item.grams) })}
+            />
+          </div>
 
           <p className="tnum px-1 text-[12.5px] text-faint">
             Per 100 g: {Math.round(item.per100.kcal)} kcal · P {round(item.per100.protein)} · F{' '}
