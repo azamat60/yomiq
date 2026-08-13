@@ -4,11 +4,16 @@ import {
   Barcode,
   Bike,
   BookOpen,
+  ArrowUp,
   Camera,
   ChevronLeft,
   ChevronRight,
+  CircleCheck,
+  Clock,
   Dumbbell,
   Footprints,
+  History,
+  Info,
   Mic,
   Moon,
   Pencil,
@@ -17,6 +22,7 @@ import {
   RotateCcw,
   Scale,
   Search,
+  Sparkles,
   Star,
   Sun,
   Sunrise,
@@ -62,6 +68,12 @@ export const IconRepeat = icon(RotateCcw, 'IconRepeat');
 export const IconWarning = icon(TriangleAlert, 'IconWarning');
 export const IconOffline = icon(WifiOff, 'IconOffline');
 export const IconBarcode = icon(Barcode, 'IconBarcode');
+export const IconCoach = icon(Sparkles, 'IconCoach');
+export const IconClock = icon(Clock, 'IconClock');
+export const IconInfo = icon(Info, 'IconInfo');
+export const IconCheck = icon(CircleCheck, 'IconCheck');
+export const IconSend = icon(ArrowUp, 'IconSend');
+export const IconHistory = icon(History, 'IconHistory');
 
 export const IconBreakfast = icon(Sunrise, 'IconBreakfast');
 export const IconLunch = icon(Sun, 'IconLunch');

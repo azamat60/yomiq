@@ -1,12 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Link } from 'react-router';
 import { entriesForDate, totalsFor } from '@/db/repository';
 import { useProfile } from '@/db/useProfile';
 import type { Entry, Meal } from '@/db/types';
 import { useAppStore } from '@/shared/store/app';
 import { KcalRing } from '@/shared/ui/KcalRing';
 import { MacroBars } from '@/shared/ui/MacroBar';
-import { IconUser } from '@/shared/ui/icons';
 import { DateSwitcher } from './DateSwitcher';
 import { MealSection } from './MealSection';
 import { MEAL_ORDER } from './constants';
@@ -32,13 +30,6 @@ export function DiaryPage() {
     <div className="flex flex-col">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-line bg-bg/85 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 backdrop-blur-xl">
         <DateSwitcher />
-        <Link
-          to="/profile"
-          aria-label="Profile"
-          className="grid size-10 shrink-0 place-items-center rounded-full text-muted active:bg-surface-2"
-        >
-          <IconUser size={22} />
-        </Link>
       </header>
 
       <section className="flex flex-col items-center gap-4 px-5 pt-3 pb-5">

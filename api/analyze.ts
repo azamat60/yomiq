@@ -1,4 +1,4 @@
-import { callOpenAI, checkAccess, fail, json, VISION_MODEL } from './_shared.js';
+import { callOpenAI, checkAccess, extractOutputText, fail, json, VISION_MODEL } from './_shared.js';
 
 const MAX_IMAGE_CHARS = 4_000_000;
 const MAX_TEXT_CHARS = 600;
@@ -134,22 +134,4 @@ function buildContent(body: Body): { value: unknown[] } | { error: string } {
       { type: 'input_image', image_url: image, detail: 'high' },
     ],
   };
-}
-
-/** Responses API nests the text inside output[].content[]; `output_text` is the shortcut. */
-function extractOutputText(payload: unknown): string | null {
-  const data = payload as {
-    output_text?: string;
-    output?: Array<{ content?: Array<{ type?: string; text?: string }> }>;
-  };
-
-  if (typeof data.output_text === 'string' && data.output_text) return data.output_text;
-
-  for (const item of data.output ?? []) {
-    for (const part of item.content ?? []) {
-      if (part.type === 'output_text' && part.text) return part.text;
-    }
-  }
-
-  return null;
 }

@@ -1,7 +1,16 @@
 import { db } from './schema';
-import { PROFILE_ID, type Draft, type Entry, type Favorite, type Macros, type Profile } from './types';
+import {
+  PROFILE_ID,
+  type Draft,
+  type Entry,
+  type Favorite,
+  type Insight,
+  type InsightTurn,
+  type Macros,
+  type Profile,
+} from './types';
 import { portionMacros, sumMacros } from '@/shared/lib/nutrition';
-import { toDateKey } from '@/shared/lib/date';
+import { defaultEatenAt, toDateKey } from '@/shared/lib/date';
 
 /**
  * The only module that touches Dexie. Screens import from here, which is what
@@ -39,12 +48,24 @@ export function entriesForDate(date: string): Promise<Entry[]> {
   return db.entries.where('date').equals(date).sortBy('createdAt');
 }
 
+/**
+ * Inclusive range over the `date` index. Sorted by day first, then by when the
+ * food was eaten — a backfilled entry has a later createdAt than the day after it.
+ */
+export async function entriesBetween(from: string, to: string): Promise<Entry[]> {
+  const list = await db.entries.where('date').between(from, to, true, true).toArray();
+  return list.sort((a, b) =>
+    a.date === b.date ? a.eatenAt - b.eatenAt : a.date < b.date ? -1 : 1,
+  );
+}
+
 export function getEntry(id: string): Promise<Entry | undefined> {
   return db.entries.get(id);
 }
 
 export async function addEntriesFromDraft(draft: Draft): Promise<string[]> {
   const createdAt = Date.now();
+  const eatenAt = defaultEatenAt(draft.date, draft.meal);
   const entries: Entry[] = draft.items.map((item, index) => ({
     id: newId(),
     date: draft.date,
@@ -56,6 +77,7 @@ export async function addEntriesFromDraft(draft: Draft): Promise<string[]> {
     // Only the first item carries the photo — one shot, one image in storage.
     photo: index === 0 ? draft.photo : undefined,
     confidence: item.confidence,
+    eatenAt: eatenAt + index,
     createdAt: createdAt + index,
   }));
 
@@ -138,23 +160,51 @@ export async function recentEntries(limit = 30): Promise<Entry[]> {
   return unique;
 }
 
+// ---------- insights ----------
+
+export function listInsights(limit = 20): Promise<Insight[]> {
+  return db.insights.orderBy('createdAt').reverse().limit(limit).toArray();
+}
+
+export function getInsight(id: string): Promise<Insight | undefined> {
+  return db.insights.get(id);
+}
+
+export async function saveInsight(input: Omit<Insight, 'id' | 'createdAt'>): Promise<string> {
+  const insight: Insight = { ...input, id: newId(), createdAt: Date.now() };
+  await db.insights.add(insight);
+  return insight.id;
+}
+
+export async function appendTurns(id: string, turns: InsightTurn[]): Promise<void> {
+  const insight = await db.insights.get(id);
+  if (!insight) return;
+  await db.insights.update(id, { turns: [...insight.turns, ...turns] });
+}
+
+export async function deleteInsight(id: string): Promise<void> {
+  await db.insights.delete(id);
+}
+
 // ---------- maintenance ----------
 
 export async function exportData(): Promise<string> {
-  const [profile, entries, favorites] = await Promise.all([
+  const [profile, entries, favorites, insights] = await Promise.all([
     getProfile(),
     db.entries.toArray(),
     db.favorites.toArray(),
+    db.insights.toArray(),
   ]);
 
   return JSON.stringify(
     {
-      version: 1,
+      version: 2,
       exportedAt: toDateKey(),
       profile,
       // Blobs cannot be serialised — photos stay on the device.
       entries: entries.map(({ photo: _photo, ...rest }) => rest),
       favorites,
+      insights,
     },
     null,
     2,
@@ -162,7 +212,12 @@ export async function exportData(): Promise<string> {
 }
 
 export async function clearAllData(): Promise<void> {
-  await db.transaction('rw', db.profile, db.entries, db.favorites, async () => {
-    await Promise.all([db.profile.clear(), db.entries.clear(), db.favorites.clear()]);
+  await db.transaction('rw', db.profile, db.entries, db.favorites, db.insights, async () => {
+    await Promise.all([
+      db.profile.clear(),
+      db.entries.clear(),
+      db.favorites.clear(),
+      db.insights.clear(),
+    ]);
   });
 }

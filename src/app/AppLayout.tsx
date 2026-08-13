@@ -1,8 +1,10 @@
+import { Suspense } from 'react';
 import { NavLink, Outlet } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { haptic } from '@/shared/lib/haptics';
 import { useAppStore } from '@/shared/store/app';
-import { IconDiary, IconPlus, IconStar } from '@/shared/ui/icons';
+import { SplashScreen } from '@/shared/ui/SplashScreen';
+import { IconCoach, IconDiary, IconPlus, IconStar, IconUser } from '@/shared/ui/icons';
 import { CaptureFlow } from '@/features/capture/CaptureFlow';
 
 export function AppLayout() {
@@ -11,12 +13,16 @@ export function AppLayout() {
   return (
     <div className="min-h-dvh bg-bg">
       <main className="mx-auto max-w-lg pb-[calc(6rem+env(safe-area-inset-bottom))]">
-        <Outlet />
+        <Suspense fallback={<SplashScreen />}>
+          <Outlet />
+        </Suspense>
       </main>
 
+      {/* Five columns, not four: the capture button has to sit in the middle cell. */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg-elevated/85 backdrop-blur-xl">
-        <div className="mx-auto grid max-w-lg grid-cols-3 items-center px-2">
+        <div className="mx-auto grid max-w-lg grid-cols-5 items-center px-1">
           <Tab to="/" label="Diary" Icon={IconDiary} />
+          <Tab to="/coach" label="Coach" Icon={IconCoach} />
 
           <div className="flex justify-center">
             <button
@@ -31,7 +37,8 @@ export function AppLayout() {
             </button>
           </div>
 
-          <Tab to="/favorites" label="My Foods" Icon={IconStar} />
+          <Tab to="/favorites" label="Foods" Icon={IconStar} />
+          <Tab to="/profile" label="Profile" Icon={IconUser} />
         </div>
         <div className="h-safe-bottom" />
       </nav>
@@ -57,7 +64,7 @@ function Tab({
       onClick={() => haptic('tap')}
       className={({ isActive }) =>
         cn(
-          'flex min-h-14 flex-col items-center justify-center gap-1 pt-2 pb-1.5 transition-colors',
+          'flex min-h-14 flex-col items-center justify-center gap-1 px-0.5 pt-2 pb-1.5 transition-colors',
           isActive ? 'text-accent' : 'text-faint active:text-muted',
         )
       }
