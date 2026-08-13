@@ -56,7 +56,7 @@ async function request(path: string, init: RequestInit & { method: string }): Pr
   return payload;
 }
 
-function post(path: string, init: RequestInit): Promise<unknown> {
+export function post(path: string, init: RequestInit): Promise<unknown> {
   return request(path, { ...init, method: 'POST' });
 }
 
@@ -108,7 +108,7 @@ function normalize(payload: unknown): AnalysisResult {
   };
 }
 
-function clamp(value: unknown, min: number, max: number, fallback: number): number {
+export function clamp(value: unknown, min: number, max: number, fallback: number): number {
   const num = Number(value);
   if (!Number.isFinite(num)) return fallback;
   return Math.min(max, Math.max(min, num));

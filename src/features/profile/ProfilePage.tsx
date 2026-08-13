@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import type { Activity, Goal, Macros, Sex } from '@/db/types';
 import { clearAllData, exportData, updateProfile } from '@/db/repository';
 import { useProfile } from '@/db/useProfile';
@@ -12,7 +11,6 @@ import { Field, OptionRow, SegmentedControl } from '@/shared/ui/Field';
 import { MacroSummary } from '@/shared/ui/MacroSummary';
 import { Sheet } from '@/shared/ui/Sheet';
 import { useToast } from '@/shared/ui/Toast';
-import { IconChevronLeft } from '@/shared/ui/icons';
 import { ACTIVITY_OPTIONS, GOAL_OPTIONS } from '@/features/onboarding/constants';
 import { MacroTargetsEditor } from '@/features/onboarding/MacroTargetsEditor';
 
@@ -46,14 +44,7 @@ export function ProfilePage() {
 
   return (
     <div className="flex flex-col">
-      <header className="sticky top-0 z-30 flex items-center gap-1 border-b border-line bg-bg/85 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
-        <Link
-          to="/"
-          aria-label="Back"
-          className="grid size-10 place-items-center rounded-full text-muted active:bg-surface-2"
-        >
-          <IconChevronLeft />
-        </Link>
+      <header className="sticky top-0 z-30 flex items-center gap-1 border-b border-line bg-bg/85 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
         <h1 className="text-[24px] font-bold tracking-tight">Profile</h1>
       </header>
 

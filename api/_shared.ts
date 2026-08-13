@@ -3,6 +3,7 @@ export const OPENAI_BASE = 'https://api.openai.com/v1';
 /** Vision model: portion-weight accuracy is the product, so not the cheapest tier. */
 export const VISION_MODEL = process.env.OPENAI_MODEL || 'gpt-5.6-terra';
 export const TRANSCRIBE_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-transcribe';
+export const COACH_MODEL = process.env.OPENAI_COACH_MODEL || VISION_MODEL;
 
 const RATE_LIMIT = Number(process.env.RATE_LIMIT_PER_MINUTE || 20);
 const WINDOW_MS = 60_000;
@@ -47,6 +48,24 @@ export function checkAccess(request: Request): Response | null {
   }
   recent.push(now);
   hits.set(ip, recent);
+
+  return null;
+}
+
+/** Responses API nests the text inside output[].content[]; `output_text` is the shortcut. */
+export function extractOutputText(payload: unknown): string | null {
+  const data = payload as {
+    output_text?: string;
+    output?: Array<{ content?: Array<{ type?: string; text?: string }> }>;
+  };
+
+  if (typeof data.output_text === 'string' && data.output_text) return data.output_text;
+
+  for (const item of data.output ?? []) {
+    for (const part of item.content ?? []) {
+      if (part.type === 'output_text' && part.text) return part.text;
+    }
+  }
 
   return null;
 }

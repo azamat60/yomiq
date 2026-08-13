@@ -3,6 +3,7 @@ import type { Entry } from '@/db/types';
 import { deleteEntry, restoreEntry } from '@/db/repository';
 import { portionMacros } from '@/shared/lib/nutrition';
 import { useObjectUrl } from '@/shared/lib/useObjectUrl';
+import { formatTime } from '@/shared/lib/date';
 import { haptic } from '@/shared/lib/haptics';
 import { useToast } from '@/shared/ui/Toast';
 import { MacroChips } from '@/shared/ui/MacroBar';
@@ -101,7 +102,7 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
             </span>
             <span className="mt-0.5 flex items-center gap-2">
               <span className="tnum shrink-0 text-[13px] text-faint">
-                {Math.round(entry.grams)} g
+                {Math.round(entry.grams)} g · {formatTime(entry.eatenAt)}
               </span>
               <MacroChips macros={macros} />
             </span>

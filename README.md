@@ -37,12 +37,17 @@ Open http://localhost:3000. The key is only ever read on the server — `/api/*`
 
 Coverage is strongest for European and packaged goods and thinner elsewhere — treat it as a fast path for scannable products, not a replacement for photo/text/voice recognition.
 
+**The coach never lets the model invent a number.** Every statistic — calorie spread, snack share, eating window, rapid-succession clusters, trigger foods — is computed locally in `src/features/coach/metrics.ts` and sent to `/api/coach` as facts. The model replies with a typed block list (`CoachBlock` in `src/db/types.ts`), not prose and not HTML: it chooses which visuals to show and writes the text, while chart blocks carry only a series key and are drawn from the app's own `CoachStats`. Rendering model-authored HTML would mean an XSS surface, a broken theme, and layout that drifts on a phone; a fixed block vocabulary gives the same expressiveness with none of that. Model output is clamped in `src/shared/api/coach.ts` before it reaches the UI or IndexedDB, the same way `normalize()` guards the analysis endpoint.
+
+Reports and their follow-up chat are stored in the `insights` table, so they open instantly and offline. The route is stateless: each chat turn resends the ~4 KB fact blob plus the last few turns flattened to text.
+
 ## Models
 
 Set in `api/_shared.ts`, overridable via env:
 
 - `OPENAI_MODEL` — photo and text analysis, defaults to `gpt-5.6-terra`. Portion-estimate accuracy is the product, so this isn't the cheapest tier; `gpt-5.6-luna` is an order of magnitude cheaper.
 - `OPENAI_TRANSCRIBE_MODEL` — speech recognition, defaults to `gpt-transcribe`.
+- `OPENAI_COACH_MODEL` — the diet coach, defaults to `OPENAI_MODEL`.
 
 Voice input is a two-step flow: `MediaRecorder` → `/api/transcribe` → text → `/api/analyze` in text mode. The same endpoint and JSON schema serve photo, text, and voice.
 
@@ -52,8 +57,10 @@ Voice input is a two-step flow: `MediaRecorder` → `/api/transcribe` → text �
 
 1. Push the repo and import the project into Vercel — it will be detected as a Vite app.
 2. In the project settings, set: `OPENAI_API_KEY`, `APP_ACCESS_CODE`, and optionally `OPENAI_MODEL`.
-3. **Make sure to set `APP_ACCESS_CODE`.** Without it, `/api/analyze` is open to the whole internet and anyone can burn through your key. The code is entered once in the app: Profile → "Recognition access code". An IP-based limit also applies — `RATE_LIMIT_PER_MINUTE`, defaulting to 20 requests per minute.
+3. **Make sure to set `APP_ACCESS_CODE`.** Without it, `/api/analyze` and `/api/coach` are open to the whole internet and anyone can burn through your key. The code is entered once in the app: Profile → "Recognition access code". An IP-based limit also applies — `RATE_LIMIT_PER_MINUTE`, defaulting to 20 requests per minute.
 
 ## Deliberately out of scope for the MVP
 
-Weekly/monthly stats, water and body-weight tracking, recipes, cross-device sync. The data model and repository layer are designed so each of these can be added independently, without rewriting existing screens.
+Water and body-weight tracking, recipes, cross-device sync, fibre as a fifth macro. The data model and repository layer are designed so each of these can be added independently, without rewriting existing screens.
+
+Fibre is the one the coach actually misses: `Macros` is `{kcal, protein, fat, carbs}` end to end — database, analysis schema, targets, editors — so satiety is discussed through energy density and protein instead. Adding it means a fifth field everywhere plus a migration for existing entries.

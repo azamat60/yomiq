@@ -65,6 +65,33 @@ export function formatTime(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
+/** Value for an `<input type="time">`, which only speaks 24-hour 'HH:MM'. */
+export function toTimeInput(timestamp: number): string {
+  const date = new Date(timestamp);
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+export function fromTimeInput(key: string, value: string): number {
+  const [hours, minutes] = value.split(':').map(Number);
+  const date = fromDateKey(key);
+  date.setHours(hours || 0, minutes || 0, 0, 0);
+  return date.getTime();
+}
+
+const MEAL_HOUR: Record<Meal, number> = { breakfast: 8, lunch: 13, dinner: 19, snack: 16 };
+
+/**
+ * When the food was eaten. Logging today means now; logging another day has no
+ * real timestamp, so it falls back to a typical hour for that meal rather than
+ * stamping every backfilled entry with the moment it was typed in.
+ */
+export function defaultEatenAt(key: string, meal: Meal): number {
+  if (isToday(key)) return Date.now();
+  const date = fromDateKey(key);
+  date.setHours(MEAL_HOUR[meal], 0, 0, 0);
+  return date.getTime();
+}
+
 /** Pre-selects the meal the user most likely means right now. */
 export function mealForNow(date: Date = new Date()): Meal {
   const hour = date.getHours();
