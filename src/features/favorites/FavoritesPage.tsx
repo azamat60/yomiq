@@ -1,15 +1,14 @@
 import { useMemo, useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import type { Favorite } from '@/db/types';
-import { deleteFavorite, listFavorites, recentEntries, saveFavorite } from '@/db/repository';
-import { portionMacros } from '@/shared/lib/nutrition';
+import { deleteFavorite, saveFavorite } from '@/db/repository';
 import { haptic } from '@/shared/lib/haptics';
 import { useAppStore } from '@/shared/store/app';
 import { Button } from '@/shared/ui/Button';
-import { MacroChips } from '@/shared/ui/MacroBar';
 import { useToast } from '@/shared/ui/Toast';
 import { IconPlus, IconRepeat, IconSearch, IconStar, IconTrash } from '@/shared/ui/icons';
 import { QuickAddSheet } from './QuickAddSheet';
+import { QuickRow } from './QuickRow';
+import { toFavorite, useQuickList } from './useQuickList';
 
 export function FavoritesPage() {
   const openCapture = useAppStore((s) => s.openCapture);
@@ -17,21 +16,12 @@ export function FavoritesPage() {
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<Favorite | null>(null);
 
-  const favorites = useLiveQuery(listFavorites, [], undefined);
-  const recent = useLiveQuery(() => recentEntries(12), [], undefined);
+  const { favorites, recent, loading } = useQuickList();
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const list = favorites ?? [];
-    return needle ? list.filter((item) => item.name.toLowerCase().includes(needle)) : list;
+    return needle ? favorites.filter((item) => item.name.toLowerCase().includes(needle)) : favorites;
   }, [favorites, query]);
-
-  const savedNames = useMemo(
-    () => new Set((favorites ?? []).map((item) => item.name.toLowerCase())),
-    [favorites],
-  );
-
-  const notYetSaved = (recent ?? []).filter((entry) => !savedNames.has(entry.name.toLowerCase()));
 
   return (
     <div className="flex flex-col">
@@ -54,72 +44,63 @@ export function FavoritesPage() {
             <SectionTitle icon={<IconStar size={16} />} title="Favorites" />
             <ul className="overflow-hidden rounded-card border border-line bg-surface">
               {filtered.map((favorite) => (
-                <FavoriteRow
+                <QuickRow
                   key={favorite.id}
                   favorite={favorite}
+                  chips
                   onPick={() => setPicked(favorite)}
-                  onDelete={async () => {
-                    await deleteFavorite(favorite.id);
-                    haptic('warning');
-                    toast.show(`"${favorite.name}" removed`);
-                  }}
+                  trailing={
+                    <RowAction
+                      label={`Remove ${favorite.name}`}
+                      tone="danger"
+                      onClick={async () => {
+                        await deleteFavorite(favorite.id);
+                        haptic('warning');
+                        toast.show(`"${favorite.name}" removed`);
+                      }}
+                    >
+                      <IconTrash size={18} />
+                    </RowAction>
+                  }
                 />
               ))}
             </ul>
           </section>
         )}
 
-        {!query && notYetSaved.length > 0 && (
+        {!query && recent.length > 0 && (
           <section className="flex flex-col gap-2">
             <SectionTitle icon={<IconRepeat size={16} />} title="Recent" />
             <ul className="overflow-hidden rounded-card border border-line bg-surface">
-              {notYetSaved.map((entry) => (
-                <li key={entry.id} className="flex items-center border-b border-line last:border-b-0">
-                  <button
-                    onClick={() => {
-                      haptic('tap');
-                      setPicked({
-                        id: `recent:${entry.id}`,
-                        name: entry.name,
-                        per100: entry.per100,
-                        defaultGrams: Math.round(entry.grams),
-                        usageCount: 0,
-                        lastUsedAt: entry.createdAt,
-                      });
-                    }}
-                    className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left active:bg-surface-2"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[15.5px] font-medium">{entry.name}</span>
-                      <span className="tnum block text-[13px] text-faint">
-                        {Math.round(entry.grams)} g ·{' '}
-                        {portionMacros(entry.per100, entry.grams).kcal} kcal
-                      </span>
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      void saveFavorite({
-                        name: entry.name,
-                        per100: entry.per100,
-                        defaultGrams: Math.round(entry.grams),
-                      });
-                      haptic('success');
-                      toast.show(`"${entry.name}" added to favorites`);
-                    }}
-                    aria-label={`Add ${entry.name} to favorites`}
-                    className="grid size-11 shrink-0 place-items-center text-faint active:text-accent"
-                  >
-                    <IconStar size={19} />
-                  </button>
-                </li>
+              {recent.map((entry) => (
+                <QuickRow
+                  key={entry.id}
+                  favorite={toFavorite(entry)}
+                  onPick={() => setPicked(toFavorite(entry))}
+                  trailing={
+                    <RowAction
+                      label={`Add ${entry.name} to favorites`}
+                      tone="accent"
+                      onClick={async () => {
+                        await saveFavorite({
+                          name: entry.name,
+                          per100: entry.per100,
+                          defaultGrams: Math.round(entry.grams),
+                        });
+                        haptic('success');
+                        toast.show(`"${entry.name}" added to favorites`);
+                      }}
+                    >
+                      <IconStar size={19} />
+                    </RowAction>
+                  }
+                />
               ))}
             </ul>
           </section>
         )}
 
-        {favorites !== undefined && favorites.length === 0 && notYetSaved.length === 0 && (
+        {!loading && favorites.length === 0 && recent.length === 0 && (
           <EmptyState onAdd={() => openCapture('manual')} />
         )}
 
@@ -142,45 +123,27 @@ function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string })
   );
 }
 
-function FavoriteRow({
-  favorite,
-  onPick,
-  onDelete,
+function RowAction({
+  label,
+  tone,
+  onClick,
+  children,
 }: {
-  favorite: Favorite;
-  onPick: () => void;
-  onDelete: () => void;
+  label: string;
+  tone: 'accent' | 'danger';
+  onClick: () => void | Promise<void>;
+  children: React.ReactNode;
 }) {
-  const macros = portionMacros(favorite.per100, favorite.defaultGrams);
-
   return (
-    <li className="flex items-center border-b border-line last:border-b-0">
-      <button
-        onClick={() => {
-          haptic('tap');
-          onPick();
-        }}
-        className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left active:bg-surface-2"
-      >
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[15.5px] font-medium">{favorite.name}</span>
-          <span className="tnum block text-[13px] text-faint">
-            {favorite.defaultGrams} g · {macros.kcal} kcal
-          </span>
-          <span className="mt-1 block">
-            <MacroChips macros={macros} />
-          </span>
-        </span>
-      </button>
-
-      <button
-        onClick={onDelete}
-        aria-label={`Remove ${favorite.name}`}
-        className="grid size-11 shrink-0 place-items-center text-faint active:text-danger"
-      >
-        <IconTrash size={18} />
-      </button>
-    </li>
+    <button
+      onClick={() => void onClick()}
+      aria-label={label}
+      className={`grid size-11 shrink-0 place-items-center text-faint ${
+        tone === 'danger' ? 'active:text-danger' : 'active:text-accent'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

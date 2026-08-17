@@ -1,23 +1,20 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useAppStore } from '@/shared/store/app';
 import { IconMeal } from '@/shared/ui/icons';
-
-const STAGES = [
-  'Reading the photo…',
-  'Identifying the dishes…',
-  'Estimating portion weight…',
-  'Calculating calories and macros…',
-];
+import { ANALYSIS_STAGES } from './constants';
 
 export function AnalyzingOverlay({ open }: { open: boolean }) {
+  const source = useAppStore((s) => s.source);
   const [stage, setStage] = useState(0);
+  const stages = ANALYSIS_STAGES[source ?? 'photo'];
 
   useEffect(() => {
     if (!open) {
       setStage(0);
       return;
     }
-    const timer = setInterval(() => setStage((s) => Math.min(STAGES.length - 1, s + 1)), 2200);
+    const timer = setInterval(() => setStage((s) => s + 1), 2200);
     return () => clearInterval(timer);
   }, [open]);
 
@@ -27,7 +24,7 @@ export function AnalyzingOverlay({ open }: { open: boolean }) {
     <div className="fixed inset-0 z-70 flex flex-col items-center justify-center gap-6 bg-bg/92 px-8 backdrop-blur-lg [animation:yq-fade-in_200ms_ease]">
       <PlateSpinner />
       <div className="flex flex-col items-center gap-2 text-center">
-        <p className="text-[17px] font-semibold">{STAGES[stage]}</p>
+        <p className="text-[17px] font-semibold">{stages[Math.min(stage, stages.length - 1)]}</p>
         <p className="text-[13.5px] text-muted">Usually takes a few seconds</p>
       </div>
 

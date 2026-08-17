@@ -22,6 +22,7 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
   const date = useAppStore((s) => s.date);
   const presetMeal = useAppStore((s) => s.presetMeal);
   const closeCapture = useAppStore((s) => s.closeCapture);
+  const popCapture = useAppStore((s) => s.popCapture);
   const toast = useToast();
 
   const [name, setName] = useState('');
@@ -71,7 +72,7 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
   };
 
   return (
-    <Sheet open={open} onClose={closeCapture} title="Enter Manually" tall>
+    <Sheet open={open} onClose={closeCapture} onBack={popCapture} title="Enter Manually" tall>
       <div className="flex flex-col gap-4">
         <Field
           label="Name"

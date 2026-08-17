@@ -34,7 +34,7 @@ export function MealSection({
       <button
         onClick={() => {
           haptic('tap');
-          openCapture('menu', meal);
+          openCapture('composer', meal);
         }}
         className="flex w-full items-center gap-3 px-3.5 py-4 text-left active:bg-surface-2"
       >

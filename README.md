@@ -12,6 +12,17 @@ npm run dev
 
 Open http://localhost:3000. The key is only ever read on the server — `/api/*` is served directly by the Vite dev server, no `vercel dev` needed.
 
+### Testing voice input from a phone
+
+`getUserMedia` needs a secure context. `localhost` counts; `http://192.168.x.x:3000` does not — there `navigator.mediaDevices` is `undefined` and the microphone can never work (the app says so explicitly instead of blaming permissions). For LAN testing, drop real certs into `certs/` and dev serves over https automatically:
+
+```bash
+brew install mkcert && mkcert -install
+mkcert -cert-file certs/localhost.pem -key-file certs/localhost-key.pem localhost 192.168.1.5
+```
+
+Install mkcert's root CA on the phone too (AirDrop `$(mkcert -CAROOT)/rootCA.pem`, then Settings → General → About → Certificate Trust Settings). `certs/` is gitignored, and without it dev falls back to http. A self-signed cert would be less setup but stops the service worker from registering, which breaks PWA testing — the thing you are most likely trying to test.
+
 ## Commands
 
 | Command | What it does |
@@ -31,7 +42,15 @@ Open http://localhost:3000. The key is only ever read on the server — `/api/*`
 
 **Photos are compressed client-side** to 1024 px on the long side (`src/shared/lib/image.ts`). A phone original is 3–8 MB, and base64 inflates that by another third, while Vercel's request body limit is 4.5 MB. It also cuts the vision-token bill.
 
-**The camera opens via `<input type="file" capture="environment">`,** not `getUserMedia`: the latter is historically unreliable in a standalone PWA on iOS, while a file input opens the native camera and works everywhere.
+**The camera opens via `<input type="file" capture="environment">`,** not `getUserMedia`: the latter is historically unreliable in a standalone PWA on iOS, while a file input opens the native camera and works everywhere. The gallery is a *second*, separate input without the `capture` attribute — the attribute cannot be toggled at runtime without losing the reliable camera path, so the photo button opens the camera and the preview screen offers the library.
+
+**Adding food is one composer sheet, not a menu of modes.** `ComposerSheet` is a chat-style surface: photo button, "what did you eat?" field, and microphone in a pinned bar, with Recent/Favorites above it for one-tap re-logging. Barcode and manual macro entry are header icons. Everything else is a step pushed onto `captureStack` in `src/shared/store/app.ts` — a discriminated union, because a step carries a payload (the picked `File`, the chosen `Favorite`) that would otherwise have to be prop-drilled. The stack is what gives every screen a back chevron, and it is mirrored onto `history` so Android's back gesture steps through the flow instead of leaving the app. The backdrop, the drag-to-dismiss gesture, and Escape leave the flow; only the chevron goes back one step.
+
+**Photos get a preview step** before analysis — retake, swap to the library, and add a hint ("fried in 2 tbsp of oil") that goes to `/api/analyze` as `hint` and measurably improves the estimate.
+
+**The microphone is held for a short idle window after a recording, not released immediately.** Tearing the stream down after every recording means a fresh `getUserMedia` on the next tap, which is a permission prompt *per recording* wherever the grant is only session-scoped. A live track also keeps the OS recording indicator lit, so the window is short (30 s, or 10 s when the grant is not known to be persistent) and backgrounding, closing the sheet, or `pagehide` all release immediately.
+
+**On iOS, a home-screen PWA re-asks for the microphone every cold launch.** WebKit does not persist `getUserMedia` grants for standalone web apps — the same constraint that keeps the camera on a file input. There is no app-side fix; `MicDeniedNotice` says so plainly and offers the text field instead.
 
 **Barcode lookup calls Open Food Facts straight from the device** (`src/shared/api/barcode.ts`), not through a serverless proxy. Open Food Facts rate-limits product lookups to 15/min *per IP*; routing every user through a handful of shared Vercel egress IPs trips that limit collectively, and the API returns 503 for everyone. Calling from the device makes the quota per user instead. The data is public and keyless, so direct calls expose nothing. Browsers cannot set `User-Agent`, so the app identifies itself via `X-User-Agent`, which Open Food Facts reads as a fallback.
 
