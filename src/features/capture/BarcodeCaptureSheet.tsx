@@ -20,6 +20,7 @@ const HINTS = new Map([[DecodeHintType.POSSIBLE_FORMATS, RETAIL_FORMATS]]);
 
 export function BarcodeCaptureSheet({ open }: { open: boolean }) {
   const closeCapture = useAppStore((s) => s.closeCapture);
+  const popCapture = useAppStore((s) => s.popCapture);
   const { fromBarcode } = useAnalyze();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -65,7 +66,7 @@ export function BarcodeCaptureSheet({ open }: { open: boolean }) {
   };
 
   return (
-    <Sheet open={open} onClose={closeCapture} title="Scan a Barcode">
+    <Sheet open={open} onClose={closeCapture} onBack={popCapture} title="Scan a Barcode">
       <div className="flex flex-col gap-4">
         <ErrorNotice />
 

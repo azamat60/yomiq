@@ -5,6 +5,7 @@ dev-dist
 .env.local
 .env.*.local
 .vercel
+certs
 .DS_Store
 *.log
 *.tsbuildinfo

@@ -29,7 +29,7 @@ export function useAnalyze() {
 
   const run = useCallback(
     async (source: Source, task: () => Promise<{ result: AnalysisResult; photo?: Blob }>) => {
-      startAnalysis();
+      startAnalysis(source);
       try {
         const { result, photo } = await task();
         if (result.items.length === 0) {

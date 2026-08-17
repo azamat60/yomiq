@@ -3,7 +3,21 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+
+/**
+ * getUserMedia needs a secure context, so testing voice input from a phone over
+ * the LAN needs real certs. Optional: without them dev falls back to http, which
+ * is fine on localhost. See the README for the mkcert one-liner.
+ */
+function devHttps() {
+  const dir = fileURLToPath(new URL('./certs', import.meta.url));
+  const key = `${dir}/localhost-key.pem`;
+  const cert = `${dir}/localhost.pem`;
+  if (!existsSync(key) || !existsSync(cert)) return undefined;
+  return { key: readFileSync(key), cert: readFileSync(cert) };
+}
 
 /**
  * Runs the same Web-standard handlers from `api/` that Vercel deploys, so local
@@ -101,6 +115,6 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
-    server: { port: 3000, host: true },
+    server: { port: 3000, host: true, https: devHttps() },
   };
 });

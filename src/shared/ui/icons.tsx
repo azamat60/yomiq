@@ -10,6 +10,7 @@ import {
   ChevronRight,
   CircleCheck,
   Clock,
+  X,
   Dumbbell,
   Footprints,
   History,
@@ -26,6 +27,7 @@ import {
   Star,
   Sun,
   Sunrise,
+  Images,
   Trash2,
   TrendingDown,
   TrendingUp,
@@ -74,6 +76,8 @@ export const IconInfo = icon(Info, 'IconInfo');
 export const IconCheck = icon(CircleCheck, 'IconCheck');
 export const IconSend = icon(ArrowUp, 'IconSend');
 export const IconHistory = icon(History, 'IconHistory');
+export const IconLibrary = icon(Images, 'IconLibrary');
+export const IconClose = icon(X, 'IconClose');
 
 export const IconBreakfast = icon(Sunrise, 'IconBreakfast');
 export const IconLunch = icon(Sun, 'IconLunch');

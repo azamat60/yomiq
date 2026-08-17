@@ -1,36 +1,69 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/shared/lib/cn';
+import { haptic } from '@/shared/lib/haptics';
+import { useVisualViewportInset } from '@/shared/lib/useVisualViewportInset';
+import { IconChevronLeft } from './icons';
 
 const DISMISS_DISTANCE = 110;
 const DISMISS_VELOCITY = 0.5;
+const EXIT_MS = 360;
+
+/**
+ * Sheets cross-fade, so two are open at once while one animates out. A plain
+ * save/restore of body.style.overflow makes the second sheet restore 'hidden'
+ * and lock the page forever; a refcount that resets to '' is idempotent, and it
+ * is only correct because Sheet is the app's single writer of that property.
+ */
+let lockCount = 0;
+
+function lockBodyScroll(): () => void {
+  if (lockCount++ === 0) document.body.style.overflow = 'hidden';
+  return () => {
+    if (--lockCount === 0) document.body.style.overflow = '';
+  };
+}
 
 type Props = {
   open: boolean;
   onClose: () => void;
   title?: string;
+  /** Steps back one level. Distinct from onClose, which leaves the flow. */
+  onBack?: () => void;
+  /** Icon buttons pinned to the right of the header. */
+  actions?: ReactNode;
+  /** Pinned below the scroll area, above the keyboard. */
+  footer?: ReactNode;
   /** Full-height variant for editor-style content. */
   tall?: boolean;
   children: ReactNode;
 };
 
-export function Sheet({ open, onClose, title, tall, children }: Props) {
+export function Sheet({ open, onClose, title, onBack, actions, footer, tall, children }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef<{ y: number; time: number } | null>(null);
   const [offset, setOffset] = useState(0);
   const [mounted, setMounted] = useState(open);
+  const inset = useVisualViewportInset();
 
   useEffect(() => {
     if (open) {
       setMounted(true);
       setOffset(0);
+      return;
     }
+
+    /* transitionend is not guaranteed — reduced-motion zeroes the duration and
+       a backgrounded tab may never fire it. Missing it would leave an invisible
+       full-screen overlay swallowing every tap, so the timer is the real
+       teardown and the event handler is only there to make it feel instant. */
+    const timer = setTimeout(() => setMounted(false), EXIT_MS);
+    return () => clearTimeout(timer);
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const unlock = lockBodyScroll();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -38,7 +71,7 @@ export function Sheet({ open, onClose, title, tall, children }: Props) {
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      document.body.style.overflow = previous;
+      unlock();
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [open, onClose]);
@@ -59,9 +92,15 @@ export function Sheet({ open, onClose, title, tall, children }: Props) {
 
   if (!mounted) return null;
 
+  const hasHeader = Boolean(title || onBack || actions);
+
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end"
+      className={cn(
+        'fixed inset-0 z-50 flex flex-col justify-end',
+        // Stops the exiting sheet from eating taps meant for the page behind it.
+        !open && 'pointer-events-none',
+      )}
       role="dialog"
       aria-modal="true"
       aria-label={title}
@@ -81,6 +120,8 @@ export function Sheet({ open, onClose, title, tall, children }: Props) {
         style={{
           transform: open ? `translateY(${offset}px)` : 'translateY(100%)',
           transition: dragStart.current ? 'none' : 'transform 320ms var(--ease-smooth)',
+          marginBottom: inset,
+          maxHeight: inset ? `calc(100dvh - ${inset}px)` : undefined,
         }}
         className={cn(
           'relative flex flex-col overflow-hidden rounded-t-[28px]',
@@ -104,13 +145,52 @@ export function Sheet({ open, onClose, title, tall, children }: Props) {
           <div className="mx-auto h-1.5 w-10 rounded-full bg-line-strong" />
         </div>
 
-        {title && (
-          <h2 className="shrink-0 px-5 pt-2 pb-1 text-center text-[17px] font-semibold">{title}</h2>
+        {hasHeader && (
+          /* Side slots are absolute so the title stays optically centred no
+             matter how many actions sit next to it. */
+          <div className="relative flex shrink-0 items-center justify-center px-2 pt-2 pb-1">
+            {onBack && (
+              <button
+                onClick={() => {
+                  haptic('tap');
+                  onBack();
+                }}
+                aria-label="Back"
+                className="absolute left-1 grid size-10 place-items-center rounded-full text-muted active:bg-surface-2"
+              >
+                <IconChevronLeft size={22} />
+              </button>
+            )}
+
+            {title && (
+              <h2
+                className={cn(
+                  'text-center text-[17px] font-semibold',
+                  onBack || actions ? 'px-12' : 'px-5',
+                )}
+              >
+                {title}
+              </h2>
+            )}
+
+            {actions && <div className="absolute right-1 flex items-center gap-0.5">{actions}</div>}
+          </div>
         )}
 
-        <div className="no-scrollbar flex-1 overflow-y-auto overscroll-contain px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div
+          className={cn(
+            'no-scrollbar flex-1 overflow-y-auto overscroll-contain px-5 pt-3',
+            footer ? 'pb-3' : 'pb-[max(1.25rem,env(safe-area-inset-bottom))]',
+          )}
+        >
           {children}
         </div>
+
+        {footer && (
+          <div className="shrink-0 border-t border-line px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     document.body,
