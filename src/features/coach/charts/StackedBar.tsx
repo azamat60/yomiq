@@ -1,7 +1,10 @@
+import { useT } from '@/shared/i18n';
+
 export type Slice = { label: string; share: number; color: string };
 
 /** One bar for the whole, plus a legend — the shares only read as parts of a total. */
 export function StackedBar({ slices, reference }: { slices: Slice[]; reference?: Slice[] }) {
+  const t = useT();
   return (
     <div className="flex flex-col gap-3">
       <Track slices={slices} />
@@ -18,7 +21,7 @@ export function StackedBar({ slices, reference }: { slices: Slice[]; reference?:
 
       {reference && (
         <div className="flex flex-col gap-1.5 border-t border-line pt-3">
-          <span className="text-[12px] text-faint">Your target for comparison</span>
+          <span className="text-[12px] text-faint">{t.coach.yourTarget}</span>
           <Track slices={reference} muted />
         </div>
       )}

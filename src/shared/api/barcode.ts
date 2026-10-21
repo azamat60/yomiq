@@ -1,8 +1,8 @@
 import type { Macros } from '@/db/types';
+import { getLocale, getT } from '@/shared/i18n';
 import { ApiError } from './client';
 
 const OFF_BASE = 'https://world.openfoodfacts.org/api/v2/product';
-const FIELDS = 'product_name,brands,nutriments';
 const CODE_PATTERN = /^\d{6,14}$/;
 
 /**
@@ -25,42 +25,48 @@ type OffResponse = {
   status?: number;
   product?: {
     product_name?: string;
+    [localized: `product_name_${string}`]: string | undefined;
     brands?: string;
     nutriments?: Record<string, number | string | undefined>;
   };
 };
 
 export async function lookupBarcode(code: string): Promise<BarcodeProduct> {
-  if (!CODE_PATTERN.test(code)) throw new ApiError('That barcode looks invalid.', 400);
-  if (!navigator.onLine) throw new ApiError('No connection. Try again once you are online.', 0);
+  const t = getT();
+  if (!CODE_PATTERN.test(code)) throw new ApiError(t.errors.barcodeInvalid, 400);
+  if (!navigator.onLine) throw new ApiError(t.errors.barcodeOffline, 0);
 
   let response: Response;
   try {
-    response = await fetch(`${OFF_BASE}/${code}.json?fields=${FIELDS}`, { headers: HEADERS });
+    const fields = `product_name,product_name_${getLocale()},brands,nutriments`;
+    response = await fetch(`${OFF_BASE}/${code}.json?fields=${fields}`, { headers: HEADERS });
   } catch {
-    throw new ApiError('Could not reach the food database.', 0);
+    throw new ApiError(t.errors.barcodeUnreachable, 0);
   }
 
   if (response.status === 429 || response.status === 503) {
-    throw new ApiError('Food database is busy right now. Try again in a minute.', response.status);
+    throw new ApiError(t.errors.barcodeBusy, response.status);
   }
   if (!response.ok) {
-    throw new ApiError(`Food database returned an error (${response.status}).`, response.status);
+    throw new ApiError(t.errors.barcodeError(response.status), response.status);
   }
 
   const data = (await response.json().catch(() => ({}))) as OffResponse;
   if (data.status !== 1 || !data.product) {
-    throw new ApiError('No product found for this barcode.', 404);
+    throw new ApiError(t.errors.barcodeNotFound, 404);
   }
 
   const nutriments = data.product.nutriments ?? {};
   const kcal = num(nutriments['energy-kcal_100g']);
   if (kcal === null) {
-    throw new ApiError('This product has no nutrition data. Add it manually.', 422);
+    throw new ApiError(t.errors.barcodeNoNutrition, 422);
   }
 
   return {
-    name: buildName(data.product.brands, data.product.product_name) || `Product ${code}`,
+    name: buildName(
+      data.product.brands,
+      data.product[`product_name_${getLocale()}`] || data.product.product_name,
+    ) || t.errors.product(code),
     per100: {
       kcal: clamp(kcal, 0, 900),
       protein: clamp(num(nutriments['proteins_100g']) ?? 0, 0, 100),

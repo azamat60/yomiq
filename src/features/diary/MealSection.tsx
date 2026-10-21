@@ -7,7 +7,8 @@ import { haptic } from '@/shared/lib/haptics';
 import { IconPlus } from '@/shared/ui/icons';
 import { EntryCard } from './EntryCard';
 import { EditEntrySheet } from './EditEntrySheet';
-import { MEAL_ICON, MEAL_LABEL, mealKcalTarget } from './constants';
+import { MEAL_ICON, mealKcalTarget } from './constants';
+import { useT } from '@/shared/i18n';
 
 export function MealSection({
   meal,
@@ -19,6 +20,7 @@ export function MealSection({
   dailyKcal: number;
 }) {
   const openCapture = useAppStore((s) => s.openCapture);
+  const t = useT();
   const [editing, setEditing] = useState<Entry | null>(null);
 
   const totals = totalsFor(entries);
@@ -44,10 +46,13 @@ export function MealSection({
 
         <span className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span className="flex items-baseline justify-between gap-2">
-            <span className="text-[16px] font-semibold">{MEAL_LABEL[meal]}</span>
+            <span className="text-[16px] font-semibold">{t.meal[meal]}</span>
             <span className="tnum shrink-0 text-[13px] font-medium">
               <span className={cn(over && 'text-warn')}>{totals.kcal}</span>
-              <span className="text-faint"> / {target} kcal</span>
+              <span className="text-faint">
+                {' '}
+                / {target} {t.common.kcal}
+              </span>
             </span>
           </span>
 

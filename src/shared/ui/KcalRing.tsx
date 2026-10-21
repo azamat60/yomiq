@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useT } from '@/shared/i18n';
 
 const SIZE = 172;
 const STROKE = 13;
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function KcalRing({ consumed, target }: Props) {
+  const t = useT();
   const ratio = target > 0 ? consumed / target : 0;
   const over = consumed > target;
   const remaining = Math.round(target - consumed);
@@ -62,7 +64,7 @@ export function KcalRing({ consumed, target }: Props) {
           {Math.abs(remaining)}
         </span>
         <span className="mt-1 text-[12.5px] font-medium text-muted">
-          {over ? 'kcal over' : 'kcal left'}
+          {over ? t.ring.over : t.ring.left}
         </span>
         <span className="tnum mt-2 text-[12.5px] text-faint">
           {Math.round(consumed)} / {target}

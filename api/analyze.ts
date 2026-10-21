@@ -1,9 +1,19 @@
-import { callOpenAI, checkAccess, extractOutputText, fail, json, VISION_MODEL } from './_shared.js';
+import {
+  callOpenAI,
+  checkAccess,
+  extractOutputText,
+  fail,
+  json,
+  languageName,
+  languageOf,
+  VISION_MODEL,
+  type Language,
+} from './_shared.js';
 
 const MAX_IMAGE_CHARS = 4_000_000;
 const MAX_TEXT_CHARS = 600;
 
-const SYSTEM_PROMPT = `You are a nutritionist who estimates the nutritional value of food.
+const BASE_PROMPT = `You are a nutritionist who estimates the nutritional value of food.
 
 From a photo or a description, identify each dish and food item separately and estimate its weight.
 
@@ -24,9 +34,13 @@ Confidence:
 - medium — the dish is clear, but the volume or composition has to be guessed.
 - low — the composition is unclear, the photo is blurry, or the dish is partially hidden.
 
-Give names in English, short (under 40 characters), without words like "approximately" or "about".
+Keep names short (under 40 characters), without words like "approximately" or "about".
 Add a short note only if it's genuinely important — for example, that the dressing isn't visible. Otherwise leave it as an empty string.
 If there's no food at all, return an empty items list and explain why in note.`;
+
+function systemPrompt(language: Language): string {
+  return `${BASE_PROMPT}\n\nWrite title, names and note in ${languageName(language)}.`;
+}
 
 const SCHEMA = {
   type: 'object',
@@ -88,7 +102,7 @@ export async function POST(request: Request): Promise<Response> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       model: VISION_MODEL,
-      instructions: SYSTEM_PROMPT,
+      instructions: systemPrompt(languageOf(request)),
       input: [{ role: 'user', content: content.value }],
       text: {
         format: { type: 'json_schema', name: 'meal_analysis', schema: SCHEMA, strict: true },

@@ -1,4 +1,5 @@
-const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+import { useT } from '@/shared/i18n';
+
 const BUCKET_HOURS = 2;
 const BUCKETS = 24 / BUCKET_HOURS;
 const HOUR_TICKS = [0, 6, 12, 18];
@@ -12,14 +13,15 @@ export type Cell = { d: number; h: number; v: number };
  * instead of the accent, which is what makes an evening cluster jump out.
  */
 export function Heatmap({ cells }: { cells: Cell[] }) {
+  const t = useT();
   const grid = new Array<number>(7 * BUCKETS).fill(0);
   for (const cell of cells) grid[cell.d * BUCKETS + cell.h] = cell.v;
 
   return (
     <div className="flex flex-col gap-[3px]">
-      {DOW.map((label, day) => (
+      {t.coach.dayInitials.map((label, day) => (
         <div key={day} className="flex items-center gap-1.5">
-          <span className="w-3 shrink-0 text-[10px] text-faint">{label}</span>
+          <span className="w-4 shrink-0 text-[10px] text-faint">{label}</span>
           <div className="flex flex-1 gap-[3px]">
             {Array.from({ length: BUCKETS }, (_, bucket) => (
               <span
@@ -33,7 +35,7 @@ export function Heatmap({ cells }: { cells: Cell[] }) {
       ))}
 
       <div className="mt-1 flex gap-1.5">
-        <span className="w-3 shrink-0" />
+        <span className="w-4 shrink-0" />
         <div className="relative h-3 flex-1">
           {HOUR_TICKS.map((hour) => (
             <span

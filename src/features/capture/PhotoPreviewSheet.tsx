@@ -6,6 +6,7 @@ import { Sheet } from '@/shared/ui/Sheet';
 import { Button } from '@/shared/ui/Button';
 import { Field } from '@/shared/ui/Field';
 import { IconCamera, IconLibrary } from '@/shared/ui/icons';
+import { useT } from '@/shared/i18n';
 import { ErrorNotice } from './ErrorNotice';
 import { PHOTO_HINT_MAX_CHARS } from './constants';
 import { useAnalyze } from './useAnalyze';
@@ -15,6 +16,7 @@ export function PhotoPreviewSheet({ open, file }: { open: boolean; file: File | 
   const popCapture = useAppStore((s) => s.popCapture);
   const replaceCapture = useAppStore((s) => s.replaceCapture);
   const { fromPhoto } = useAnalyze();
+  const t = useT();
 
   const [hint, setHint] = useState('');
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -47,7 +49,7 @@ export function PhotoPreviewSheet({ open, file }: { open: boolean; file: File | 
       open={open}
       onClose={closeCapture}
       onBack={popCapture}
-      title="Check the photo"
+      title={t.photo.title}
       tall
       footer={
         <Button
@@ -59,7 +61,7 @@ export function PhotoPreviewSheet({ open, file }: { open: boolean; file: File | 
             if (shown) void fromPhoto(shown, hint.trim() || undefined);
           }}
         >
-          Analyse
+          {t.composer.analyse}
         </Button>
       }
     >
@@ -77,23 +79,23 @@ export function PhotoPreviewSheet({ open, file }: { open: boolean; file: File | 
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" onClick={() => cameraInput.current?.click()}>
             <IconCamera size={18} />
-            Retake
+            {t.photo.retake}
           </Button>
           <Button variant="secondary" onClick={() => libraryInput.current?.click()}>
             <IconLibrary size={18} />
-            Library
+            {t.photo.library}
           </Button>
         </div>
 
         <Field
-          label="Anything to add?"
-          placeholder="e.g. fried in 2 tbsp of oil"
+          label={t.photo.hintLabel}
+          placeholder={t.photo.hintPlaceholder}
           maxLength={PHOTO_HINT_MAX_CHARS}
           value={hint}
           onChange={(event) => setHint(event.target.value)}
         />
         <p className="-mt-2 px-1 text-[12.5px] leading-snug text-faint">
-          A note about oil, sauce, or portion size makes the estimate noticeably better.
+          {t.photo.hintHelp}
         </p>
       </div>
 

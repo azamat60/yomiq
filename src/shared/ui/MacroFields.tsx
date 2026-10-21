@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Macros } from '@/db/types';
-import { MACRO_COLOR, MACRO_LABEL, type MacroKey } from './MacroBar';
+import { MACRO_COLOR, type MacroKey } from './MacroBar';
+import { useT } from '@/shared/i18n';
 
 const MACRO_KEYS: MacroKey[] = ['protein', 'fat', 'carbs'];
 type Key = keyof Macros;
@@ -17,6 +18,7 @@ export function MacroFields({
   macros: Macros;
   onChange: (macros: Macros) => void;
 }) {
+  const t = useT();
   const [typing, setTyping] = useState<Partial<Record<Key, string>>>({});
 
   const set = (key: Key, raw: string) => {
@@ -36,8 +38,8 @@ export function MacroFields({
   return (
     <div className="grid grid-cols-2 gap-2">
       <Cell
-        label="Calories"
-        suffix="kcal"
+        label={t.grams.calories}
+        suffix={t.common.kcal}
         value={shown('kcal')}
         onChange={(raw) => set('kcal', raw)}
         onBlur={() => release('kcal')}
@@ -45,8 +47,8 @@ export function MacroFields({
       {MACRO_KEYS.map((key) => (
         <Cell
           key={key}
-          label={MACRO_LABEL[key]}
-          suffix="g"
+          label={t.macro[key]}
+          suffix={t.common.g}
           dot={MACRO_COLOR[key]}
           value={shown(key)}
           onChange={(raw) => set(key, raw)}

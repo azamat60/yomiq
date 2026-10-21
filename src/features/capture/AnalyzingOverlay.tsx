@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAppStore } from '@/shared/store/app';
 import { IconMeal } from '@/shared/ui/icons';
-import { ANALYSIS_STAGES } from './constants';
+import { useT } from '@/shared/i18n';
 
 export function AnalyzingOverlay({ open }: { open: boolean }) {
   const source = useAppStore((s) => s.source);
+  const t = useT();
   const [stage, setStage] = useState(0);
-  const stages = ANALYSIS_STAGES[source ?? 'photo'];
+  const stages = t.analysis.stages[source ?? 'photo'];
 
   useEffect(() => {
     if (!open) {
@@ -25,7 +26,7 @@ export function AnalyzingOverlay({ open }: { open: boolean }) {
       <PlateSpinner />
       <div className="flex flex-col items-center gap-2 text-center">
         <p className="text-[17px] font-semibold">{stages[Math.min(stage, stages.length - 1)]}</p>
-        <p className="text-[13.5px] text-muted">Usually takes a few seconds</p>
+        <p className="text-[13.5px] text-muted">{t.analysis.usually}</p>
       </div>
 
       <div className="flex w-full max-w-xs flex-col gap-2.5">

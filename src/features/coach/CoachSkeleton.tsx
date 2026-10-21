@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react';
-
-const STAGES = [
-  'Reading your diary…',
-  'Measuring your patterns…',
-  'Looking for what repeats…',
-  'Writing your report…',
-];
+import { useT } from '@/shared/i18n';
 
 const SHIMMER =
   'linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%)';
@@ -33,14 +27,16 @@ export function CoachSkeleton({ compact }: { compact?: boolean }) {
 }
 
 function Stage() {
+  const t = useT();
+  const stages = t.coach.stages;
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => setStage((s) => Math.min(STAGES.length - 1, s + 1)), 2600);
+    const timer = setInterval(() => setStage((s) => Math.min(stages.length - 1, s + 1)), 2600);
     return () => clearInterval(timer);
-  }, []);
+  }, [stages.length]);
 
   return (
-    <p className="px-1 text-center text-[14px] font-medium text-muted">{STAGES[stage]}</p>
+    <p className="px-1 text-center text-[14px] font-medium text-muted">{stages[stage]}</p>
   );
 }

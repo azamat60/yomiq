@@ -1,11 +1,13 @@
 import { useAppStore } from '@/shared/store/app';
 import { formatDayLabel, formatFullDate, isFuture, isToday, shiftDateKey, toDateKey } from '@/shared/lib/date';
 import { haptic } from '@/shared/lib/haptics';
+import { useT } from '@/shared/i18n';
 import { IconChevronLeft, IconChevronRight } from '@/shared/ui/icons';
 
 export function DateSwitcher() {
   const date = useAppStore((s) => s.date);
   const setDate = useAppStore((s) => s.setDate);
+  const t = useT();
 
   const shift = (days: number) => {
     const next = shiftDateKey(date, days);
@@ -19,7 +21,7 @@ export function DateSwitcher() {
     <div className="flex flex-1 items-center gap-1">
       <button
         onClick={() => shift(-1)}
-        aria-label="Previous day"
+        aria-label={t.date.prevDay}
         className="grid size-10 place-items-center rounded-full text-muted active:bg-surface-2"
       >
         <IconChevronLeft size={22} />
@@ -40,7 +42,7 @@ export function DateSwitcher() {
       <button
         onClick={() => shift(1)}
         disabled={isToday(date)}
-        aria-label="Next day"
+        aria-label={t.date.nextDay}
         className="grid size-10 place-items-center rounded-full text-muted transition-opacity active:bg-surface-2 disabled:opacity-25"
       >
         <IconChevronRight size={22} />

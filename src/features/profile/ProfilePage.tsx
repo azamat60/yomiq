@@ -3,7 +3,8 @@ import type { Activity, Goal, Macros, Sex } from '@/db/types';
 import { clearAllData, exportData, updateProfile } from '@/db/repository';
 import { useProfile } from '@/db/useProfile';
 import { calculateTargets } from '@/shared/lib/nutrition';
-import { getStoredTheme, setTheme, THEME_LABEL, type Theme } from '@/shared/lib/theme';
+import { getStoredTheme, setTheme, THEME, type Theme } from '@/shared/lib/theme';
+import { LOCALE_OPTIONS, useLocaleStore, useT } from '@/shared/i18n';
 import { getAccessCode, setAccessCode } from '@/shared/api/client';
 import { haptic } from '@/shared/lib/haptics';
 import { Button } from '@/shared/ui/Button';
@@ -17,16 +18,24 @@ import { MacroTargetsEditor } from '@/features/onboarding/MacroTargetsEditor';
 export function ProfilePage() {
   const profile = useProfile();
   const toast = useToast();
+  const t = useT();
+  const locale = useLocaleStore((s) => s.locale);
+  const setLocale = useLocaleStore((s) => s.setLocale);
 
   const [sheet, setSheet] = useState<'body' | 'targets' | 'access' | null>(null);
   const [theme, setThemeState] = useState<Theme>(getStoredTheme);
 
   if (!profile) return null;
 
-  const bodyLine = `${profile.sex === 'male' ? 'M' : 'F'} · ${profile.age} yrs · ${profile.heightCm} cm · ${profile.weightKg} kg`;
+  const bodyLine = t.profile.bodyLine(
+    profile.sex === 'male',
+    profile.age,
+    profile.heightCm,
+    profile.weightKg,
+  );
 
   const reset = async () => {
-    if (!confirm('Delete your profile and all entries? This cannot be undone.')) return;
+    if (!confirm(t.profile.confirmDelete)) return;
     await clearAllData();
     location.href = '/';
   };
@@ -38,65 +47,70 @@ export function ProfilePage() {
     link.href = url;
     link.download = `yomiq-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
-    toast.show('File exported');
+    // Safari starts the download asynchronously; revoking right away cancels it.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast.show(t.toast.exported);
   };
 
   return (
     <div className="flex flex-col">
       <header className="sticky top-0 z-30 flex items-center gap-1 border-b border-line bg-bg/85 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
-        <h1 className="text-[24px] font-bold tracking-tight">Profile</h1>
+        <h1 className="text-[24px] font-bold tracking-tight">{t.profile.title}</h1>
       </header>
 
       <div className="flex flex-col gap-6 px-4 py-5">
         <section className="flex flex-col gap-2">
           <MacroSummary macros={profile.targets} />
           <p className="px-1 text-center text-[12.5px] text-faint">
-            {profile.targetsOverridden ? 'Target set manually' : 'Target calculated automatically'}
+            {profile.targetsOverridden ? t.profile.targetManual : t.profile.targetAuto}
           </p>
         </section>
 
-        <Group title="Data">
-          <Row label="Body stats" value={bodyLine} onClick={() => setSheet('body')} />
+        <Group title={t.profile.data}>
+          <Row label={t.profile.bodyStats} value={bodyLine} onClick={() => setSheet('body')} />
           <Row
-            label="Daily target"
-            value={`${profile.targets.kcal} kcal`}
+            label={t.profile.dailyTarget}
+            value={`${profile.targets.kcal} ${t.common.kcal}`}
             onClick={() => setSheet('targets')}
           />
         </Group>
 
-        <Group title="App">
-          <div className="flex flex-col gap-2.5 px-4 py-3.5">
-            <span className="text-[13px] font-medium text-muted">Theme</span>
+        <Group title={t.profile.app}>
+          <div className="flex flex-col gap-2.5 border-b border-line px-4 py-3.5">
+            <span className="text-[13px] font-medium text-muted">{t.profile.language}</span>
+            <SegmentedControl value={locale} onChange={setLocale} options={LOCALE_OPTIONS} />
+          </div>
+          <div className="flex flex-col gap-2.5 border-b border-line px-4 py-3.5">
+            <span className="text-[13px] font-medium text-muted">{t.profile.theme}</span>
             <SegmentedControl
               value={theme}
               onChange={(value) => {
                 setTheme(value);
                 setThemeState(value);
               }}
-              options={(['dark', 'light', 'system'] as Theme[]).map((value) => ({
+              options={(Object.keys(THEME) as Theme[]).map((value) => ({
                 value,
-                label: THEME_LABEL[value],
+                label: t.theme[value],
               }))}
             />
           </div>
           <Row
-            label="Recognition access code"
-            value={getAccessCode() ? 'Set' : 'Not set'}
+            label={t.profile.accessCode}
+            value={getAccessCode() ? t.profile.set : t.profile.notSet}
             onClick={() => setSheet('access')}
           />
         </Group>
 
-        <Group title="Diary Data">
-          <Row label="Export to JSON" value="" onClick={() => void download()} />
+        <Group title={t.profile.diaryData}>
+          <Row label={t.profile.export} value="" onClick={() => void download()} />
         </Group>
 
         <Button variant="danger" block onClick={() => void reset()}>
-          Delete All Data
+          {t.profile.deleteAll}
         </Button>
 
         <p className="pb-2 text-center text-[12px] text-faint">
-          Yomiq · entries are stored only on this device
+          {t.profile.footer}
         </p>
       </div>
 
@@ -104,14 +118,14 @@ export function ProfilePage() {
         open={sheet === 'body'}
         onClose={() => setSheet(null)}
         profile={profile}
-        onSaved={() => toast.show('Stats updated')}
+        onSaved={() => toast.show(t.toast.statsUpdated)}
       />
       <TargetsSheet
         open={sheet === 'targets'}
         onClose={() => setSheet(null)}
         targets={profile.targets}
         computed={() => calculateTargets(profile)}
-        onSaved={() => toast.show('Target updated')}
+        onSaved={() => toast.show(t.toast.targetUpdated)}
       />
       <AccessCodeSheet open={sheet === 'access'} onClose={() => setSheet(null)} />
     </div>
@@ -142,6 +156,34 @@ function Row({ label, value, onClick }: { label: string; value: string; onClick:
   );
 }
 
+type BodyProfile = {
+  sex: Sex;
+  age: number;
+  heightCm: number;
+  weightKg: number;
+  activity: Activity;
+  goal: Goal;
+  targetsOverridden: boolean;
+};
+
+/** Numbers stay strings while editing, otherwise clearing a field snaps it to 0. */
+type BodyForm = Omit<BodyProfile, 'age' | 'heightCm' | 'weightKg' | 'targetsOverridden'> & {
+  age: string;
+  heightCm: string;
+  weightKg: string;
+};
+
+function toForm(profile: BodyProfile): BodyForm {
+  return {
+    sex: profile.sex,
+    age: String(profile.age),
+    heightCm: String(profile.heightCm),
+    weightKg: String(profile.weightKg),
+    activity: profile.activity,
+    goal: profile.goal,
+  };
+}
+
 function BodySheet({
   open,
   onClose,
@@ -150,13 +192,14 @@ function BodySheet({
 }: {
   open: boolean;
   onClose: () => void;
-  profile: { sex: Sex; age: number; heightCm: number; weightKg: number; activity: Activity; goal: Goal; targetsOverridden: boolean };
+  profile: BodyProfile;
   onSaved: () => void;
 }) {
-  const [form, setForm] = useState(profile);
+  const t = useT();
+  const [form, setForm] = useState(() => toForm(profile));
 
   useEffect(() => {
-    if (open) setForm(profile);
+    if (open) setForm(toForm(profile));
   }, [open, profile]);
 
   const save = async () => {
@@ -164,7 +207,7 @@ function BodySheet({
       sex: form.sex,
       age: Number(form.age) || profile.age,
       heightCm: Number(form.heightCm) || profile.heightCm,
-      weightKg: Number(form.weightKg) || profile.weightKg,
+      weightKg: Number(form.weightKg.replace(',', '.')) || profile.weightKg,
       activity: form.activity,
       goal: form.goal,
     };
@@ -178,60 +221,62 @@ function BodySheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Body Stats" tall>
+    <Sheet open={open} onClose={onClose} title={t.profile.bodyTitle} tall>
       <div className="flex flex-col gap-4">
         <SegmentedControl
           value={form.sex}
           onChange={(sex) => setForm({ ...form, sex })}
           options={[
-            { value: 'male', label: 'Male' },
-            { value: 'female', label: 'Female' },
+            { value: 'male', label: t.body.male },
+            { value: 'female', label: t.body.female },
           ]}
         />
 
         <Field
-          label="Age"
-          suffix="yrs"
+          label={t.body.age}
+          suffix={t.body.years}
           type="number"
           inputMode="numeric"
-          value={String(form.age)}
-          onChange={(e) => setForm({ ...form, age: Number(e.target.value) })}
+          value={form.age}
+          onChange={(e) => setForm({ ...form, age: e.target.value })}
         />
         <Field
-          label="Height"
-          suffix="cm"
+          label={t.body.height}
+          suffix={t.body.cm}
           type="number"
           inputMode="numeric"
-          value={String(form.heightCm)}
-          onChange={(e) => setForm({ ...form, heightCm: Number(e.target.value) })}
+          value={form.heightCm}
+          onChange={(e) => setForm({ ...form, heightCm: e.target.value })}
         />
         <Field
-          label="Weight"
-          suffix="kg"
+          label={t.body.weight}
+          suffix={t.body.kg}
           type="number"
           inputMode="decimal"
-          value={String(form.weightKg)}
-          onChange={(e) => setForm({ ...form, weightKg: Number(e.target.value) })}
+          value={form.weightKg}
+          onChange={(e) => setForm({ ...form, weightKg: e.target.value })}
         />
 
-        <span className="px-1 text-[13px] font-medium text-muted">Activity level</span>
+        <span className="px-1 text-[13px] font-medium text-muted">{t.body.activity}</span>
         <div className="flex flex-col gap-2">
           {ACTIVITY_OPTIONS.map((option) => (
             <OptionRow
               key={option.value}
               {...option}
+              {...t.activity[option.value]}
               selected={form.activity}
               onSelect={(activity) => setForm({ ...form, activity })}
             />
           ))}
         </div>
 
-        <span className="px-1 text-[13px] font-medium text-muted">Goal</span>
+        <span className="px-1 text-[13px] font-medium text-muted">{t.body.goal}</span>
         <div className="flex flex-col gap-2">
           {GOAL_OPTIONS.map((option) => (
             <OptionRow
               key={option.value}
               {...option}
+              {...t.goal[option.value]}
               selected={form.goal}
               onSelect={(goal) => setForm({ ...form, goal })}
             />
@@ -239,7 +284,7 @@ function BodySheet({
         </div>
 
         <Button size="lg" block onClick={() => void save()}>
-          Save
+          {t.common.save}
         </Button>
       </div>
     </Sheet>
@@ -259,6 +304,7 @@ function TargetsSheet({
   computed: () => Macros;
   onSaved: () => void;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState(targets);
 
   useEffect(() => {
@@ -276,11 +322,11 @@ function TargetsSheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Daily Target" tall>
+    <Sheet open={open} onClose={onClose} title={t.profile.targetTitle} tall>
       <div className="flex flex-col gap-5">
         <MacroTargetsEditor targets={draft} onChange={setDraft} onReset={() => setDraft(computed())} />
-        <Button size="lg" block onClick={() => void save()}>
-          Save
+        <Button size="lg" block disabled={draft.kcal <= 0} onClick={() => void save()}>
+          {t.common.save}
         </Button>
       </div>
     </Sheet>
@@ -288,6 +334,7 @@ function TargetsSheet({
 }
 
 function AccessCodeSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
   const [code, setCode] = useState('');
 
   useEffect(() => {
@@ -295,14 +342,11 @@ function AccessCodeSheet({ open, onClose }: { open: boolean; onClose: () => void
   }, [open]);
 
   return (
-    <Sheet open={open} onClose={onClose} title="Access Code">
+    <Sheet open={open} onClose={onClose} title={t.profile.accessTitle}>
       <div className="flex flex-col gap-4">
-        <p className="text-[14px] leading-snug text-muted">
-          Only needed if <code className="text-text">APP_ACCESS_CODE</code> is set on the server. It
-          protects recognition from other people's requests hitting your OpenAI key.
-        </p>
+        <p className="text-[14px] leading-snug text-muted">{t.profile.accessHelp}</p>
         <Field
-          label="Code"
+          label={t.profile.code}
           type="password"
           autoComplete="off"
           value={code}
@@ -317,7 +361,7 @@ function AccessCodeSheet({ open, onClose }: { open: boolean; onClose: () => void
             onClose();
           }}
         >
-          Save
+          {t.common.save}
         </Button>
       </div>
     </Sheet>

@@ -12,7 +12,8 @@ import { GramsStepper } from '@/shared/ui/GramsStepper';
 import { MealPicker } from '@/shared/ui/MealPicker';
 import { MacroSummary } from '@/shared/ui/MacroSummary';
 import { useToast } from '@/shared/ui/Toast';
-import { MACRO_LABEL, type MacroKey } from '@/shared/ui/MacroBar';
+import type { MacroKey } from '@/shared/ui/MacroBar';
+import { useT } from '@/shared/i18n';
 
 const MACRO_KEYS: MacroKey[] = ['protein', 'fat', 'carbs'];
 
@@ -24,6 +25,7 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
   const closeCapture = useAppStore((s) => s.closeCapture);
   const popCapture = useAppStore((s) => s.popCapture);
   const toast = useToast();
+  const t = useT();
 
   const [name, setName] = useState('');
   const [grams, setGrams] = useState(100);
@@ -42,10 +44,10 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
   }, [open, presetMeal]);
 
   const per100: Macros = {
-    kcal: Number(per100Raw.kcal) || 0,
-    protein: Number(per100Raw.protein) || 0,
-    fat: Number(per100Raw.fat) || 0,
-    carbs: Number(per100Raw.carbs) || 0,
+    kcal: parseAmount(per100Raw.kcal),
+    protein: parseAmount(per100Raw.protein),
+    fat: parseAmount(per100Raw.fat),
+    carbs: parseAmount(per100Raw.carbs),
   };
 
   const valid = name.trim().length > 0 && per100.kcal > 0 && grams > 0;
@@ -55,40 +57,44 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
     setSaving(true);
 
     const trimmed = name.trim();
-    await addEntriesFromDraft({
-      title: trimmed,
-      note: '',
-      source: 'manual',
-      date,
-      meal,
-      items: [{ id: crypto.randomUUID(), name: trimmed, grams, per100, confidence: 'high' }],
-    });
-    if (remember) await saveFavorite({ name: trimmed, per100, defaultGrams: grams });
+    try {
+      await addEntriesFromDraft({
+        title: trimmed,
+        note: '',
+        source: 'manual',
+        date,
+        meal,
+        items: [{ id: crypto.randomUUID(), name: trimmed, grams, per100, confidence: 'high' }],
+      });
+      if (remember) await saveFavorite({ name: trimmed, per100, defaultGrams: grams });
+    } finally {
+      setSaving(false);
+    }
 
     haptic('success');
-    setSaving(false);
     closeCapture();
-    toast.show(`Logged: ${portionMacros(per100, grams).kcal} kcal`);
+    toast.show(t.toast.logged(portionMacros(per100, grams).kcal));
   };
 
   return (
-    <Sheet open={open} onClose={closeCapture} onBack={popCapture} title="Enter Manually" tall>
+    <Sheet open={open} onClose={closeCapture} onBack={popCapture} title={t.manual.title} tall>
       <div className="flex flex-col gap-4">
         <Field
-          label="Name"
-          placeholder="Cottage cheese 5%"
+          label={t.manual.name}
+          placeholder={t.manual.namePlaceholder}
+          maxLength={60}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
         <div className="flex flex-col gap-2">
-          <span className="px-1 text-[13px] font-medium text-muted">Per 100 grams</span>
+          <span className="px-1 text-[13px] font-medium text-muted">{t.manual.per100}</span>
           <div className="grid grid-cols-2 gap-2">
             <Field
-              label="Calories"
-              suffix="kcal"
-              type="number"
-              inputMode="numeric"
+              label={t.grams.calories}
+              suffix={t.common.kcal}
+              type="text"
+              inputMode="decimal"
               placeholder="0"
               value={per100Raw.kcal}
               onChange={(e) => setPer100Raw({ ...per100Raw, kcal: e.target.value })}
@@ -96,9 +102,9 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
             {MACRO_KEYS.map((key) => (
               <Field
                 key={key}
-                label={MACRO_LABEL[key]}
-                suffix="g"
-                type="number"
+                label={t.macro[key]}
+                suffix={t.common.g}
+                type="text"
                 inputMode="decimal"
                 placeholder="0"
                 value={per100Raw[key]}
@@ -109,14 +115,14 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="px-1 text-[13px] font-medium text-muted">Portion weight</span>
+          <span className="px-1 text-[13px] font-medium text-muted">{t.manual.portion}</span>
           <GramsStepper grams={grams} onChange={setGrams} />
         </div>
 
         {per100.kcal > 0 && <MacroSummary macros={portionMacros(per100, grams)} />}
 
         <div className="flex flex-col gap-2">
-          <span className="px-1 text-[13px] font-medium text-muted">Meal</span>
+          <span className="px-1 text-[13px] font-medium text-muted">{t.entry.meal}</span>
           <MealPicker value={meal} onChange={setMeal} />
         </div>
 
@@ -127,13 +133,18 @@ export function ManualEntrySheet({ open }: { open: boolean }) {
             onChange={(e) => setRemember(e.target.checked)}
             className="size-5 accent-[var(--accent)]"
           />
-          <span className="text-[15px]">Save to "My Foods"</span>
+          <span className="text-[15px]">{t.manual.remember}</span>
         </label>
 
         <Button size="lg" block loading={saving} disabled={!valid} onClick={() => void save()}>
-          Add
+          {t.common.add}
         </Button>
       </div>
     </Sheet>
   );
+}
+
+/** Accepts a decimal comma too — it is what a Russian keyboard types. */
+function parseAmount(raw: string): number {
+  return Math.max(0, Number(raw.replace(',', '.')) || 0);
 }

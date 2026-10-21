@@ -5,15 +5,17 @@ import { haptic } from '@/shared/lib/haptics';
 import { useAppStore } from '@/shared/store/app';
 import { Sheet } from '@/shared/ui/Sheet';
 import { SegmentedControl } from '@/shared/ui/Field';
-import { IconBarcode, IconPencil } from '@/shared/ui/icons';
+import { IconBarcode, IconClose, IconPencil, IconTrash } from '@/shared/ui/icons';
+import { useT } from '@/shared/i18n';
 import { QuickRow } from '@/features/favorites/QuickRow';
-import { toFavorite, useQuickList } from '@/features/favorites/useQuickList';
+import { RowAction } from '@/features/favorites/RowAction';
+import { isRecent, toFavorite, useQuickActions, useQuickList } from '@/features/favorites/useQuickList';
 import { ComposerBar } from './ComposerBar';
 import { ErrorNotice } from './ErrorNotice';
 import { MicDeniedNotice } from './MicDeniedNotice';
 import { OfflineNotice } from './OfflineNotice';
 import { RecordingBar } from './RecordingBar';
-import { EXAMPLES, QUICK_TAB_OPTIONS, type QuickTab } from './constants';
+import { QUICK_TAB, QUICK_TABS, type QuickTab } from './constants';
 import { useAnalyze } from './useAnalyze';
 import { useMicPermission } from './useMicPermission';
 import { useRecorder } from './useRecorder';
@@ -26,6 +28,12 @@ export function ComposerSheet({ open }: { open: boolean }) {
   const permission = useMicPermission();
   const { fromText, fromVoice } = useAnalyze();
   const { favorites, recent } = useQuickList();
+  const { remove } = useQuickActions();
+  const t = useT();
+  const tabLabel: Record<QuickTab, string> = {
+    recent: t.composer.tabRecent,
+    favorites: t.composer.tabFavorites,
+  };
 
   const [tab, setTab] = useState<QuickTab>('recent');
   const [text, setText] = useState('');
@@ -34,7 +42,7 @@ export function ComposerSheet({ open }: { open: boolean }) {
 
   const recorder = useRecorder({
     onComplete: (audio) => void fromVoice(audio),
-    onEmpty: () => failAnalysis('Recording failed. Please try again.'),
+    onEmpty: () => failAnalysis(t.composer.recordingFailed),
     granted: permission === 'granted',
   });
   const recording = recorder.state === 'recording';
@@ -48,7 +56,7 @@ export function ComposerSheet({ open }: { open: boolean }) {
     release();
   }, [open, cancel, release]);
 
-  const rows = tab === 'recent' ? recent.map(toFavorite) : favorites;
+  const rows = tab === QUICK_TAB.recent ? recent.map(toFavorite) : favorites;
   const pick = (favorite: Favorite) => pushCapture({ kind: 'quickAdd', favorite });
 
   const send = () => {
@@ -62,18 +70,18 @@ export function ComposerSheet({ open }: { open: boolean }) {
     <Sheet
       open={open}
       onClose={closeCapture}
-      title="Add food"
+      title={t.composer.title}
       tall
       actions={
         <>
           <HeaderIcon
-            label="Scan barcode"
+            label={t.composer.scanBarcode}
             disabled={!online}
             onClick={() => pushCapture({ kind: 'barcode' })}
           >
             <IconBarcode size={20} />
           </HeaderIcon>
-          <HeaderIcon label="Enter macros manually" onClick={() => pushCapture({ kind: 'manual' })}>
+          <HeaderIcon label={t.composer.manual} onClick={() => pushCapture({ kind: 'manual' })}>
             <IconPencil size={20} />
           </HeaderIcon>
         </>
@@ -109,10 +117,10 @@ export function ComposerSheet({ open }: { open: boolean }) {
           <p className="flex-1 text-[14px] leading-snug">{recorder.error}</p>
           <button
             onClick={recorder.clearError}
-            aria-label="Dismiss"
+            aria-label={t.common.dismiss}
             className="shrink-0 text-[13px] font-medium text-muted active:opacity-60"
           >
-            OK
+            {t.common.ok}
           </button>
         </div>
       )}
@@ -121,13 +129,26 @@ export function ComposerSheet({ open }: { open: boolean }) {
         <SegmentedControl
           value={tab}
           onChange={setTab}
-          options={QUICK_TAB_OPTIONS}
+          options={QUICK_TABS.map((value) => ({ value, label: tabLabel[value] }))}
         />
 
         {rows.length > 0 ? (
           <ul className="overflow-hidden rounded-card border border-line bg-surface">
             {rows.map((favorite) => (
-              <QuickRow key={favorite.id} favorite={favorite} onPick={() => pick(favorite)} />
+              <QuickRow
+                key={favorite.id}
+                favorite={favorite}
+                onPick={() => pick(favorite)}
+                trailing={
+                  <RowAction
+                    label={isRecent(favorite) ? t.foods.hide(favorite.name) : t.foods.remove(favorite.name)}
+                    tone="danger"
+                    onClick={() => remove(favorite)}
+                  >
+                    {isRecent(favorite) ? <IconClose size={18} /> : <IconTrash size={18} />}
+                  </RowAction>
+                }
+              />
             ))}
           </ul>
         ) : (
@@ -156,18 +177,20 @@ export function ComposerSheet({ open }: { open: boolean }) {
 }
 
 function EmptyList({ tab, onExample }: { tab: QuickTab; onExample: (value: string) => void }) {
-  if (tab === 'favorites') {
+  const t = useT();
+
+  if (tab === QUICK_TAB.favorites) {
     return (
       <p className="px-1 py-6 text-center text-[13.5px] leading-snug text-faint">
-        Save a food from the editor and it will show up here for one-tap adding.
+        {t.composer.emptyFavorites}
       </p>
     );
   }
 
   return (
     <div className="flex flex-col gap-2 py-2">
-      <p className="px-1 text-[13px] text-faint">Nothing logged yet. Try describing a meal:</p>
-      {EXAMPLES.map((example) => (
+      <p className="px-1 text-[13px] text-faint">{t.composer.emptyRecent}</p>
+      {t.composer.examples.map((example) => (
         <button
           key={example}
           onClick={() => onExample(example)}

@@ -1,4 +1,5 @@
 import { IconClose, IconSend } from '@/shared/ui/icons';
+import { useT } from '@/shared/i18n';
 
 const WARN_FROM_REMAINING = 10;
 
@@ -15,13 +16,14 @@ export function RecordingBar({
   onCancel: () => void;
   onSend: () => void;
 }) {
+  const t = useT();
   const remaining = maxSeconds - seconds;
 
   return (
     <div className="flex items-center gap-2 rounded-card border border-line bg-surface p-2">
       <button
         onClick={onCancel}
-        aria-label="Cancel recording"
+        aria-label={t.composer.cancelRecording}
         className="grid size-10 shrink-0 place-items-center rounded-full text-muted transition-transform duration-150 active:scale-90 active:bg-surface-2"
       >
         <IconClose size={20} />
@@ -49,7 +51,7 @@ export function RecordingBar({
 
       <button
         onClick={onSend}
-        aria-label="Send recording"
+        aria-label={t.composer.sendRecording}
         className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-on-accent transition-transform duration-150 active:scale-90"
       >
         <IconSend size={20} />

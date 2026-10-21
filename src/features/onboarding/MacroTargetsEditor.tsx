@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Macros } from '@/db/types';
-import { MACRO_COLOR, MACRO_LABEL, type MacroKey } from '@/shared/ui/MacroBar';
+import { MACRO_COLOR, type MacroKey } from '@/shared/ui/MacroBar';
+import { useT } from '@/shared/i18n';
 import { Field } from '@/shared/ui/Field';
 import { haptic } from '@/shared/lib/haptics';
 
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
 
   const macroKcal = MACRO_KEYS.reduce((sum, key) => sum + targets[key] * KCAL_PER_GRAM[key], 0);
@@ -24,7 +26,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
         <span className="tnum block text-[56px] leading-none font-bold tracking-tight">
           {targets.kcal}
         </span>
-        <span className="mt-1 block text-[14px] text-muted">kcal per day</span>
+        <span className="mt-1 block text-[14px] text-muted">{t.targets.perDay}</span>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -32,7 +34,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
           <div key={key} className="rounded-tile border border-line bg-surface px-3 py-3.5 text-center">
             <span className="mx-auto mb-2 block h-1 w-8 rounded-full" style={{ background: MACRO_COLOR[key] }} />
             <span className="tnum block text-[22px] font-bold">{targets[key]}</span>
-            <span className="block text-[12px] text-muted">{MACRO_LABEL[key]}, g</span>
+            <span className="block text-[12px] text-muted">{t.summary.macroGrams(t.macro[key])}</span>
           </div>
         ))}
       </div>
@@ -40,8 +42,8 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
       {editing ? (
         <div className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4">
           <Field
-            label="Calories"
-            suffix="kcal"
+            label={t.grams.calories}
+            suffix={t.common.kcal}
             type="number"
             inputMode="numeric"
             value={String(targets.kcal)}
@@ -50,8 +52,8 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
           {MACRO_KEYS.map((key) => (
             <Field
               key={key}
-              label={MACRO_LABEL[key]}
-              suffix="g"
+              label={t.macro[key]}
+              suffix={t.common.g}
               type="number"
               inputMode="numeric"
               value={String(targets[key])}
@@ -61,7 +63,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
 
           {Math.abs(macroKcal - targets.kcal) > 60 && (
             <p className="px-1 text-[13px] text-warn">
-              Macros add up to {Math.round(macroKcal)} kcal — that doesn't match the target above.
+              {t.targets.mismatch(Math.round(macroKcal))}
             </p>
           )}
 
@@ -72,7 +74,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
             }}
             className="px-1 py-1 text-left text-[14px] font-medium text-muted active:opacity-60"
           >
-            Reset to calculated values
+            {t.targets.reset}
           </button>
         </div>
       ) : (
@@ -83,7 +85,7 @@ export function MacroTargetsEditor({ targets, onChange, onReset }: Props) {
           }}
           className="px-1 py-1 text-[15px] font-medium text-accent active:opacity-60"
         >
-          Set target manually
+          {t.targets.setManually}
         </button>
       )}
     </div>

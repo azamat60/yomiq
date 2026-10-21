@@ -1,18 +1,7 @@
 import type { Macros } from '@/db/types';
+import { useT } from '@/shared/i18n';
 
 export type MacroKey = 'protein' | 'fat' | 'carbs';
-
-export const MACRO_LABEL: Record<MacroKey, string> = {
-  protein: 'Protein',
-  fat: 'Fat',
-  carbs: 'Carbs',
-};
-
-export const MACRO_SHORT: Record<MacroKey, string> = {
-  protein: 'P',
-  fat: 'F',
-  carbs: 'C',
-};
 
 export const MACRO_COLOR: Record<MacroKey, string> = {
   protein: 'var(--protein)',
@@ -33,16 +22,19 @@ export function MacroBars({ consumed, target }: { consumed: Macros; target: Macr
 }
 
 function MacroBar({ macro, value, target }: { macro: MacroKey; value: number; target: number }) {
+  const t = useT();
   const ratio = target > 0 ? Math.min(1, value / target) : 0;
   const over = value > target;
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-1">
-        <span className="text-[12.5px] font-medium text-muted">{MACRO_LABEL[macro]}</span>
+        <span className="text-[12.5px] font-medium text-muted">{t.macro[macro]}</span>
         <span className="tnum text-[12.5px] font-semibold">
           {Math.round(value)}
-          <span className="font-normal text-faint">/{Math.round(target)}g</span>
+          <span className="font-normal text-faint">/{Math.round(target)}
+            {t.common.g}
+          </span>
         </span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-track">

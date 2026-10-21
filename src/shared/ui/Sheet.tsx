@@ -4,6 +4,7 @@ import { cn } from '@/shared/lib/cn';
 import { haptic } from '@/shared/lib/haptics';
 import { useVisualViewportInset } from '@/shared/lib/useVisualViewportInset';
 import { IconChevronLeft } from './icons';
+import { useT } from '@/shared/i18n';
 
 const DISMISS_DISTANCE = 110;
 const DISMISS_VELOCITY = 0.5;
@@ -45,6 +46,7 @@ export function Sheet({ open, onClose, title, onBack, actions, footer, tall, chi
   const [offset, setOffset] = useState(0);
   const [mounted, setMounted] = useState(open);
   const inset = useVisualViewportInset();
+  const t = useT();
 
   useEffect(() => {
     if (open) {
@@ -106,7 +108,7 @@ export function Sheet({ open, onClose, title, onBack, actions, footer, tall, chi
       aria-label={title}
     >
       <button
-        aria-label="Close"
+        aria-label={t.common.close}
         onClick={onClose}
         style={{ opacity: open ? Math.max(0, 1 - offset / 320) : 0 }}
         className="absolute inset-0 bg-black/55 backdrop-blur-[2px] transition-opacity duration-200"
@@ -155,7 +157,7 @@ export function Sheet({ open, onClose, title, onBack, actions, footer, tall, chi
                   haptic('tap');
                   onBack();
                 }}
-                aria-label="Back"
+                aria-label={t.common.back}
                 className="absolute left-1 grid size-10 place-items-center rounded-full text-muted active:bg-surface-2"
               >
                 <IconChevronLeft size={22} />

@@ -4,6 +4,7 @@ import { formatFullDate } from '@/shared/lib/date';
 import { haptic } from '@/shared/lib/haptics';
 import { Sheet } from '@/shared/ui/Sheet';
 import { IconTrash } from '@/shared/ui/icons';
+import { useT } from '@/shared/i18n';
 
 export function CoachHistorySheet({
   open,
@@ -18,10 +19,12 @@ export function CoachHistorySheet({
   onClose: () => void;
   onOpen: (id: string) => void;
 }) {
+  const t = useT();
+
   return (
-    <Sheet open={open} onClose={onClose} title="Past reports" tall>
+    <Sheet open={open} onClose={onClose} title={t.coach.pastReports} tall>
       {insights.length === 0 ? (
-        <p className="py-8 text-center text-[14px] text-muted">No reports yet.</p>
+        <p className="py-8 text-center text-[14px] text-muted">{t.coach.noReports}</p>
       ) : (
         <ul className="flex flex-col overflow-hidden rounded-card border border-line bg-surface">
           {insights.map((insight) => (
@@ -37,12 +40,12 @@ export function CoachHistorySheet({
                 <span className="text-[15px] font-medium">
                   {formatFullDate(insight.to)}
                   {insight.id === currentId && (
-                    <span className="pl-2 text-[12px] font-normal text-accent">Open</span>
+                    <span className="pl-2 text-[12px] font-normal text-accent">{t.coach.open}</span>
                   )}
                 </span>
                 <span className="text-[12.5px] text-faint">
-                  {insight.days} days · {insight.stats.daysLogged} logged
-                  {insight.turns.length > 0 && ` · ${countQuestions(insight)} questions`}
+                  {t.coach.historyMeta(insight.days, insight.stats.daysLogged)}
+                  {insight.turns.length > 0 && t.coach.questions(countQuestions(insight))}
                 </span>
               </button>
 
@@ -51,7 +54,7 @@ export function CoachHistorySheet({
                   haptic('warning');
                   void deleteInsight(insight.id);
                 }}
-                aria-label="Delete report"
+                aria-label={t.coach.deleteReport}
                 className="grid size-12 shrink-0 place-items-center text-faint active:text-danger"
               >
                 <IconTrash size={18} />

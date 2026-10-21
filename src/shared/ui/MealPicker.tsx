@@ -1,9 +1,11 @@
 import type { Meal } from '@/db/types';
 import { cn } from '@/shared/lib/cn';
 import { haptic } from '@/shared/lib/haptics';
-import { MEAL_ICON, MEAL_LABEL, MEAL_ORDER } from '@/features/diary/constants';
+import { MEAL_ICON, MEAL_ORDER } from '@/features/diary/constants';
+import { useT } from '@/shared/i18n';
 
 export function MealPicker({ value, onChange }: { value: Meal; onChange: (meal: Meal) => void }) {
+  const t = useT();
   return (
     <div className="grid grid-cols-4 gap-1.5">
       {MEAL_ORDER.map((meal) => {
@@ -26,7 +28,7 @@ export function MealPicker({ value, onChange }: { value: Meal; onChange: (meal: 
             )}
           >
             <MealIcon size={18} className={active ? 'text-accent' : undefined} />
-            <span className="text-[12px] font-medium">{MEAL_LABEL[meal]}</span>
+            <span className="text-[12px] font-medium">{t.meal[meal]}</span>
           </button>
         );
       })}

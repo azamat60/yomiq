@@ -14,6 +14,7 @@ import {
   type IconComponent,
 } from '@/shared/ui/icons';
 import { Logo } from '@/shared/ui/SplashScreen';
+import { LOCALE_OPTIONS, useLocaleStore, useT } from '@/shared/i18n';
 import { MacroTargetsEditor } from './MacroTargetsEditor';
 import { ACTIVITY_OPTIONS, GOAL_OPTIONS, STEPS } from './constants';
 
@@ -37,6 +38,7 @@ const INITIAL: Form = {
 
 export function OnboardingPage() {
   const navigate = useNavigate();
+  const t = useT();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<Form>(INITIAL);
   const [targets, setTargets] = useState<Macros | null>(null);
@@ -86,7 +88,7 @@ export function OnboardingPage() {
         {step > 0 ? (
           <button
             onClick={() => setStep((current) => current - 1)}
-            aria-label="Back"
+            aria-label={t.common.back}
             className="-ml-2 grid size-10 place-items-center rounded-full text-muted active:bg-surface-2"
           >
             <IconChevronLeft />
@@ -112,40 +114,40 @@ export function OnboardingPage() {
         {step === 0 && <IntroStep />}
 
         {step === 1 && (
-          <StepShell title="Your sex" hint="Needed for the metabolic rate formula">
+          <StepShell title={t.onboarding.sexTitle} hint={t.onboarding.sexHint}>
             <SegmentedControl
               value={form.sex}
               onChange={(value) => set('sex', value)}
               options={[
-                { value: 'male', label: 'Male' },
-                { value: 'female', label: 'Female' },
+                { value: 'male', label: t.body.male },
+                { value: 'female', label: t.body.female },
               ]}
             />
           </StepShell>
         )}
 
         {step === 2 && (
-          <StepShell title="Body stats" hint="You can change these anytime">
+          <StepShell title={t.onboarding.bodyTitle} hint={t.onboarding.bodyHint}>
             <div className="flex flex-col gap-3">
               <Field
-                label="Age"
-                suffix="yrs"
+                label={t.body.age}
+                suffix={t.body.years}
                 type="number"
                 inputMode="numeric"
                 value={form.age}
                 onChange={(e) => set('age', e.target.value)}
               />
               <Field
-                label="Height"
-                suffix="cm"
+                label={t.body.height}
+                suffix={t.body.cm}
                 type="number"
                 inputMode="numeric"
                 value={form.heightCm}
                 onChange={(e) => set('heightCm', e.target.value)}
               />
               <Field
-                label="Weight"
-                suffix="kg"
+                label={t.body.weight}
+                suffix={t.body.kg}
                 type="number"
                 inputMode="decimal"
                 value={form.weightKg}
@@ -153,18 +155,19 @@ export function OnboardingPage() {
               />
             </div>
             {!bodyValid && (
-              <p className="px-1 text-[13px] text-muted">Double-check these values — something looks off.</p>
+              <p className="px-1 text-[13px] text-muted">{t.onboarding.bodyInvalid}</p>
             )}
           </StepShell>
         )}
 
         {step === 3 && (
-          <StepShell title="Activity level" hint="Counting both work and workouts">
+          <StepShell title={t.onboarding.activityTitle} hint={t.onboarding.activityHint}>
             <div className="flex flex-col gap-2">
               {ACTIVITY_OPTIONS.map((option) => (
                 <OptionRow
                   key={option.value}
                   {...option}
+                  {...t.activity[option.value]}
                   selected={form.activity}
                   onSelect={(value) => set('activity', value)}
                 />
@@ -174,12 +177,13 @@ export function OnboardingPage() {
         )}
 
         {step === 4 && (
-          <StepShell title="Your goal" hint="This sets your daily target">
+          <StepShell title={t.onboarding.goalTitle} hint={t.onboarding.goalHint}>
             <div className="flex flex-col gap-2">
               {GOAL_OPTIONS.map((option) => (
                 <OptionRow
                   key={option.value}
                   {...option}
+                  {...t.goal[option.value]}
                   selected={form.goal}
                   onSelect={(value) => set('goal', value)}
                 />
@@ -189,7 +193,7 @@ export function OnboardingPage() {
         )}
 
         {step === 5 && targets && (
-          <StepShell title="Your daily target" hint="Calculated with the Mifflin-St Jeor formula">
+          <StepShell title={t.onboarding.targetTitle} hint={t.onboarding.targetHint}>
             <MacroTargetsEditor
               targets={targets}
               onChange={setTargets}
@@ -202,11 +206,11 @@ export function OnboardingPage() {
       <footer className="pt-2">
         {step === STEPS.length - 1 ? (
           <Button size="lg" block loading={saving} onClick={finish}>
-            Start tracking
+            {t.onboarding.start}
           </Button>
         ) : (
           <Button size="lg" block disabled={!canAdvance} onClick={goNext}>
-            {step === 0 ? "Let's go" : 'Next'}
+            {step === 0 ? t.onboarding.go : t.common.next}
           </Button>
         )}
       </footer>
@@ -235,20 +239,31 @@ function StepShell({
 }
 
 function IntroStep() {
+  const t = useT();
+  const locale = useLocaleStore((s) => s.locale);
+  const setLocale = useLocaleStore((s) => s.setLocale);
+
   return (
     <section className="flex h-full flex-col items-center justify-center gap-6 text-center">
       <Logo size={76} />
       <div className="flex flex-col gap-2">
         <h1 className="text-[34px] leading-tight font-bold tracking-tight">Yomiq</h1>
         <p className="max-w-xs text-[16px] text-muted">
-          Snap a photo, speak, or type — calories and macros get calculated for you.
+          {t.onboarding.tagline}
         </p>
       </div>
       <ul className="flex w-full max-w-xs flex-col gap-3 text-left text-[15px] text-muted">
-        <Highlight icon={IconCamera} text="Photo of a meal → weight and calories" />
-        <Highlight icon={IconMic} text="Voice and text instead of searching a database" />
-        <Highlight icon={IconStar} text="Frequent meals — added in one tap" />
+        <Highlight icon={IconCamera} text={t.onboarding.highlightPhoto} />
+        <Highlight icon={IconMic} text={t.onboarding.highlightVoice} />
+        <Highlight icon={IconStar} text={t.onboarding.highlightFavorites} />
       </ul>
+      <div className="w-full max-w-xs">
+        <SegmentedControl
+          value={locale}
+          onChange={setLocale}
+          options={LOCALE_OPTIONS}
+        />
+      </div>
     </section>
   );
 }

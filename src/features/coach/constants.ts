@@ -1,4 +1,4 @@
-import type { CoachSeries, Effort, Tone } from '@/db/types';
+import type { Tone } from '@/db/types';
 import {
   IconCheck,
   IconInfo,
@@ -18,23 +18,6 @@ export const TONE_ICON: Record<Tone, IconComponent> = {
   neutral: IconInfo,
   warn: IconWarning,
   bad: IconWarning,
-};
-
-export const EFFORT_LABEL: Record<Effort, string> = {
-  easy: 'Easy',
-  medium: 'Takes effort',
-  hard: 'Hard',
-};
-
-/** Fallback title when the model leaves a chart untitled. */
-export const SERIES_LABEL: Record<CoachSeries, string> = {
-  kcalByDay: 'Calories by day',
-  snackShareByDay: 'Snack share by day',
-  mealSplit: 'Calories by meal',
-  macroSplit: 'Where your calories come from',
-  topFoods: 'Biggest calorie contributors',
-  timeHeatmap: 'When you eat',
-  eatingWindow: 'Your eating window',
 };
 
 export const PERIOD_OPTIONS = [7, 14, 30] as const;

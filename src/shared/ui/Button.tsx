@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { haptic } from '@/shared/lib/haptics';
+import { useT } from '@/shared/i18n';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
@@ -61,9 +62,10 @@ export function Button({
 }
 
 function Spinner() {
+  const t = useT();
   return (
     <span
-      aria-label="Loading"
+      aria-label={t.common.loading}
       className="size-5 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70"
     />
   );

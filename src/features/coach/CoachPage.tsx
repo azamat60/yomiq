@@ -13,6 +13,7 @@ import { CoachEmptyState } from './CoachEmptyState';
 import { CoachHistorySheet } from './CoachHistorySheet';
 import { CoachSkeleton } from './CoachSkeleton';
 import { MIN_DAYS_LOGGED, MIN_ENTRIES, PERIOD_OPTIONS, type Period } from './constants';
+import { useT } from '@/shared/i18n';
 import { useCoach } from './useCoach';
 
 export function CoachPage() {
@@ -23,6 +24,7 @@ export function CoachPage() {
 
 function Coach({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>> }) {
   const online = useOnline();
+  const t = useT();
   const [historyOpen, setHistoryOpen] = useState(false);
   const coach = useCoach(profile);
 
@@ -34,10 +36,10 @@ function Coach({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>
   return (
     <div className="flex flex-col">
       <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-line bg-bg/85 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
-        <h1 className="flex-1 text-[24px] font-bold tracking-tight">Coach</h1>
+        <h1 className="flex-1 text-[24px] font-bold tracking-tight">{t.coach.title}</h1>
         <button
           onClick={() => setHistoryOpen(true)}
-          aria-label="Past reports"
+          aria-label={t.coach.pastReports}
           className="grid size-10 shrink-0 place-items-center rounded-full text-muted active:bg-surface-2"
         >
           <IconHistory size={21} />
@@ -48,11 +50,11 @@ function Coach({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>
         <SegmentedControl
           value={String(coach.period)}
           onChange={(period) => coach.setPeriod(Number(period) as Period)}
-          options={PERIOD_OPTIONS.map((days) => ({ value: String(days), label: `${days} days` }))}
+          options={PERIOD_OPTIONS.map((days) => ({ value: String(days), label: t.coach.days(days) }))}
         />
 
         {!online && (
-          <Notice tone="muted">Offline. Saved reports still open; new ones need a connection.</Notice>
+          <Notice tone="muted">{t.coach.offline}</Notice>
         )}
 
         {coach.error && (
@@ -77,7 +79,7 @@ function Coach({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>
             onClick={() => void coach.generate()}
           >
             <IconCoach size={20} />
-            {coach.current ? 'New report' : 'Analyse my diet'}
+            {coach.current ? t.coach.newReport : t.coach.analyse}
           </Button>
         )}
 
@@ -109,11 +111,12 @@ function Coach({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>
 }
 
 function Report({ insight, asking }: { insight: Insight; asking: boolean }) {
+  const t = useT();
+
   return (
     <div className="flex flex-col gap-4">
       <p className="px-1 text-[12.5px] text-faint">
-        {insight.days} days up to {formatDayLabel(insight.to).toLowerCase()} ·{' '}
-        {insight.stats.daysLogged} days logged
+        {t.coach.reportMeta(insight.days, formatDayLabel(insight.to), insight.stats.daysLogged)}
       </p>
 
       <BlockList blocks={insight.blocks} stats={insight.stats} />
@@ -151,6 +154,8 @@ function Notice({
   onDismiss?: () => void;
   children: React.ReactNode;
 }) {
+  const t = useT();
+
   if (tone === 'muted') {
     return (
       <p className="rounded-card border border-line px-4 py-3 text-[13px] text-faint">{children}</p>
@@ -164,10 +169,10 @@ function Notice({
       {onDismiss && (
         <button
           onClick={onDismiss}
-          aria-label="Dismiss"
+          aria-label={t.common.dismiss}
           className="shrink-0 text-[13px] font-medium text-muted active:opacity-60"
         >
-          OK
+          {t.common.ok}
         </button>
       )}
     </div>

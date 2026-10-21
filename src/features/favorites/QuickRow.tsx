@@ -2,6 +2,7 @@ import type { Favorite } from '@/db/types';
 import { portionMacros } from '@/shared/lib/nutrition';
 import { haptic } from '@/shared/lib/haptics';
 import { MacroChips } from '@/shared/ui/MacroBar';
+import { useT } from '@/shared/i18n';
 
 export function QuickRow({
   favorite,
@@ -14,6 +15,7 @@ export function QuickRow({
   chips?: boolean;
   trailing?: React.ReactNode;
 }) {
+  const t = useT();
   const macros = portionMacros(favorite.per100, favorite.defaultGrams);
 
   return (
@@ -28,7 +30,7 @@ export function QuickRow({
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15.5px] font-medium">{favorite.name}</span>
           <span className="tnum block text-[13px] text-faint">
-            {favorite.defaultGrams} g · {macros.kcal} kcal
+            {t.foods.entry(favorite.defaultGrams, macros.kcal)}
           </span>
           {chips && (
             <span className="mt-1 block">

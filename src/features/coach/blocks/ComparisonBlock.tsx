@@ -1,17 +1,19 @@
 import type { CoachBlock } from '@/db/types';
 import { TONE_COLOR } from '../constants';
+import { useT } from '@/shared/i18n';
 import { BlockCard } from './BlockCard';
 
 type Comparison = Extract<CoachBlock, { type: 'comparison' }>;
 
 export function ComparisonBlock({ block }: { block: Comparison }) {
+  const t = useT();
   return (
     <BlockCard title={block.title}>
       <div className="flex flex-col">
         <div className="flex gap-2 pb-1.5 text-[11.5px] text-faint">
           <span className="flex-1" />
-          <span className="w-[4.5rem] shrink-0 text-right">You</span>
-          <span className="w-[4.5rem] shrink-0 text-right">Suggested</span>
+          <span className="w-[4.5rem] shrink-0 text-right">{t.coach.you}</span>
+          <span className="w-[4.5rem] shrink-0 text-right">{t.coach.suggested}</span>
         </div>
 
         {block.rows.map((row, index) => (

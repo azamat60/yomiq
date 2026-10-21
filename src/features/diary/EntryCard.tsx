@@ -8,16 +8,20 @@ import { haptic } from '@/shared/lib/haptics';
 import { useToast } from '@/shared/ui/Toast';
 import { MacroChips } from '@/shared/ui/MacroBar';
 import { IconMeal, IconTrash, IconWarning } from '@/shared/ui/icons';
+import { useT } from '@/shared/i18n';
 
 const REVEAL_WIDTH = 88;
 const DELETE_THRESHOLD = 150;
 
 export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void }) {
   const toast = useToast();
+  const t = useT();
   const photoUrl = useObjectUrl(entry.photo);
   const [offset, setOffset] = useState(0);
   const [removing, setRemoving] = useState(false);
-  const drag = useRef<{ x: number; base: number; moved: boolean } | null>(null);
+  const drag = useRef<{ x: number; y: number; base: number; moved: boolean } | null>(null);
+  // A drag ends with a click on the row; without this it would open the editor.
+  const swallowClick = useRef(false);
 
   const macros = portionMacros(entry.per100, entry.grams);
 
@@ -26,8 +30,8 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
     const deleted = await deleteEntry(entry.id);
     haptic('warning');
     if (deleted) {
-      toast.show(`"${deleted.name}" deleted`, {
-        label: 'Undo',
+      toast.show(t.toast.deleted(deleted.name), {
+        label: t.common.undo,
         run: () => void restoreEntry(deleted),
       });
     }
@@ -46,13 +50,25 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
         }}
         onPointerDown={(event) => {
           if (event.pointerType === 'mouse' && event.button !== 0) return;
-          drag.current = { x: event.clientX, base: offset, moved: false };
+          drag.current = { x: event.clientX, y: event.clientY, base: offset, moved: false };
+          swallowClick.current = false;
         }}
         onPointerMove={(event) => {
           const state = drag.current;
           if (!state) return;
-          const next = state.base + (event.clientX - state.x);
-          if (Math.abs(next - state.base) > 4) state.moved = true;
+          const dx = event.clientX - state.x;
+          if (!state.moved) {
+            const dy = Math.abs(event.clientY - state.y);
+            if (Math.abs(dx) <= 6 && dy <= 6) return;
+            // Vertical intent is a page scroll, not a swipe.
+            if (dy > Math.abs(dx)) {
+              drag.current = null;
+              return;
+            }
+            state.moved = true;
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }
+          const next = state.base + dx;
           // Rubber-bands to the right so the row can't be dragged off-axis.
           setOffset(Math.min(0, Math.max(-DELETE_THRESHOLD - 40, next)));
         }}
@@ -60,6 +76,8 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
           const state = drag.current;
           drag.current = null;
           if (!state) return;
+          if (!state.moved) return;
+          swallowClick.current = true;
           if (offset < -DELETE_THRESHOLD) void remove();
           else setOffset(offset < -REVEAL_WIDTH / 2 ? -REVEAL_WIDTH : 0);
         }}
@@ -67,10 +85,14 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
           drag.current = null;
           setOffset(0);
         }}
-        className="relative bg-surface"
+        className="relative touch-pan-y bg-surface"
       >
         <button
           onClick={() => {
+            if (swallowClick.current) {
+              swallowClick.current = false;
+              return;
+            }
             if (offset !== 0) {
               setOffset(0);
               return;
@@ -97,12 +119,12 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
             <span className="flex items-center gap-1.5">
               <span className="truncate text-[15.5px] font-medium">{entry.name}</span>
               {entry.confidence === 'low' && (
-                <IconWarning size={14} className="shrink-0 text-warn" />
+                <IconWarning size={14} className="shrink-0 text-warn" aria-label={t.entry.lowConfidence} />
               )}
             </span>
             <span className="mt-0.5 flex items-center gap-2">
               <span className="tnum shrink-0 text-[13px] text-faint">
-                {Math.round(entry.grams)} g · {formatTime(entry.eatenAt)}
+                {Math.round(entry.grams)} {t.common.g} · {formatTime(entry.eatenAt)}
               </span>
               <MacroChips macros={macros} />
             </span>
@@ -115,7 +137,7 @@ export function EntryCard({ entry, onEdit }: { entry: Entry; onEdit: () => void 
       {offset === -REVEAL_WIDTH && (
         <button
           onClick={() => void remove()}
-          aria-label="Delete"
+          aria-label={t.common.delete}
           className="absolute inset-y-0 right-0 w-[88px]"
         />
       )}

@@ -56,6 +56,8 @@ Install mkcert's root CA on the phone too (AirDrop `$(mkcert -CAROOT)/rootCA.pem
 
 Coverage is strongest for European and packaged goods and thinner elsewhere — treat it as a fast path for scannable products, not a replacement for photo/text/voice recognition.
 
+**UI text lives in `src/shared/i18n/`** — one typed dictionary per language (`en.ts` is the source of truth, `ru.ts` must match its shape, so a missing key fails `npm run ts`). Components read it with `useT()`; non-React code (API clients, date formatting) uses `getT()`. The chosen language is sent to `/api/*` as `x-app-lang`, so food names, coach reports and voice transcription come back in it too.
+
 **The coach never lets the model invent a number.** Every statistic — calorie spread, snack share, eating window, rapid-succession clusters, trigger foods — is computed locally in `src/features/coach/metrics.ts` and sent to `/api/coach` as facts. The model replies with a typed block list (`CoachBlock` in `src/db/types.ts`), not prose and not HTML: it chooses which visuals to show and writes the text, while chart blocks carry only a series key and are drawn from the app's own `CoachStats`. Rendering model-authored HTML would mean an XSS surface, a broken theme, and layout that drifts on a phone; a fixed block vocabulary gives the same expressiveness with none of that. Model output is clamped in `src/shared/api/coach.ts` before it reaches the UI or IndexedDB, the same way `normalize()` guards the analysis endpoint.
 
 Reports and their follow-up chat are stored in the `insights` table, so they open instantly and offline. The route is stateless: each chat turn resends the ~4 KB fact blob plus the last few turns flattened to text.

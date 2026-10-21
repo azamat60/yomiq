@@ -1,4 +1,5 @@
 import { IconCoach } from '@/shared/ui/icons';
+import { useT } from '@/shared/i18n';
 import { MIN_DAYS_LOGGED, MIN_ENTRIES } from './constants';
 
 export function CoachEmptyState({
@@ -8,6 +9,7 @@ export function CoachEmptyState({
   daysLogged: number;
   entryCount: number;
 }) {
+  const t = useT();
   const missingDays = Math.max(0, MIN_DAYS_LOGGED - daysLogged);
 
   return (
@@ -17,15 +19,15 @@ export function CoachEmptyState({
       </span>
 
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-[17px] font-semibold">Not enough diary yet</h2>
+        <h2 className="text-[17px] font-semibold">{t.coach.notEnough}</h2>
         <p className="text-[14px] leading-snug text-muted">
           {missingDays > 0
-            ? `${daysLogged} of ${MIN_DAYS_LOGGED} days logged in this period. Log ${missingDays} more and the coach can look for patterns.`
-            : `${entryCount} of ${MIN_ENTRIES} items logged in this period. A few more and the coach can look for patterns.`}
+            ? t.coach.missingDays(daysLogged, MIN_DAYS_LOGGED, missingDays)
+            : t.coach.missingEntries(entryCount, MIN_ENTRIES)}
         </p>
       </div>
 
-      <p className="text-[13px] text-faint">Or pick a longer period above.</p>
+      <p className="text-[13px] text-faint">{t.coach.longerPeriod}</p>
     </div>
   );
 }
