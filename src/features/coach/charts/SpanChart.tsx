@@ -1,3 +1,5 @@
+import { useT } from '@/shared/i18n';
+
 const HOUR_TICKS = [0, 6, 12, 18];
 const LATE_FROM_HOUR = 21;
 
@@ -5,6 +7,7 @@ export type Span = { label: string; from: number; to: number };
 
 /** First-to-last meal per day on a 24-hour axis — the eating window made literal. */
 export function SpanChart({ spans }: { spans: Span[] }) {
+  const t = useT();
   return (
     <div className="flex flex-col gap-1.5">
       {spans.map((span, index) => (
@@ -24,7 +27,7 @@ export function SpanChart({ spans }: { spans: Span[] }) {
             />
           </div>
           <span className="tnum w-9 shrink-0 text-right text-[11px] font-semibold">
-            {Math.round(span.to - span.from)}h
+            {t.coach.hours(Math.round(span.to - span.from))}
           </span>
         </div>
       ))}

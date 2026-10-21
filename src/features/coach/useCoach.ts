@@ -6,6 +6,7 @@ import { ApiError } from '@/shared/api/client';
 import { blocksToText, requestCoachAnswer, requestCoachReport } from '@/shared/api/coach';
 import { shiftDateKey, toDateKey } from '@/shared/lib/date';
 import { haptic } from '@/shared/lib/haptics';
+import { getT } from '@/shared/i18n';
 import { buildStats, toModelFacts } from './metrics';
 import { DEFAULT_PERIOD, REGENERATE_COOLDOWN_MS, type Period } from './constants';
 
@@ -32,9 +33,11 @@ export function useCoach(profile: Profile) {
     undefined,
   );
 
-  const current = openId
-    ? (insights?.find((insight) => insight.id === openId) ?? null)
-    : (insights?.[0] ?? null);
+  // A deleted report falls back to the newest one instead of blanking the page.
+  const current =
+    (openId ? insights?.find((insight) => insight.id === openId) : undefined) ??
+    insights?.[0] ??
+    null;
 
   useEffect(() => {
     if (!cooling) return;
@@ -135,5 +138,5 @@ function historyFor(insight: Insight): { role: 'user' | 'coach'; text: string }[
 }
 
 function messageFor(cause: unknown): string {
-  return cause instanceof ApiError ? cause.message : 'Could not reach the coach. Try again.';
+  return cause instanceof ApiError ? cause.message : getT().coach.unreachable;
 }

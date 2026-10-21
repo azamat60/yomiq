@@ -1,4 +1,14 @@
-import { callOpenAI, checkAccess, COACH_MODEL, extractOutputText, fail, json } from './_shared.js';
+import {
+  callOpenAI,
+  checkAccess,
+  COACH_MODEL,
+  extractOutputText,
+  fail,
+  json,
+  languageName,
+  languageOf,
+  type Language,
+} from './_shared.js';
 
 const MAX_FACTS_CHARS = 24_000;
 const MAX_QUESTION_CHARS = 400;
@@ -15,7 +25,7 @@ const SERIES = [
   'eatingWindow',
 ] as const;
 
-const BASE_PROMPT = `You are a behavioural nutrition coach analysing a food diary. You are NOT a doctor and you never diagnose. Write in English.
+const BASE_PROMPT = `You are a behavioural nutrition coach analysing a food diary. You are NOT a doctor and you never diagnose.
 
 FACTS
 - Every number you state must come from the FACTS object. Never invent, estimate or extrapolate a number that is not there.
@@ -51,6 +61,11 @@ const CHAT_PROMPT = `${BASE_PROMPT}
 
 TASK
 Answer the user's follow-up question with 1 to 4 blocks. Lead with the direct answer. If FACTS cannot answer the question, say so in a single insight block and name what the user would have to log to find out.`;
+
+function promptFor(chat: boolean, language: Language): string {
+  const task = chat ? CHAT_PROMPT : REPORT_PROMPT;
+  return `${task}\n\nLANGUAGE\nWrite every text field in ${languageName(language)}.`;
+}
 
 const obj = (properties: Record<string, unknown>) => ({
   type: 'object',
@@ -192,7 +207,7 @@ export async function POST(request: Request): Promise<Response> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       model: COACH_MODEL,
-      instructions: chat ? CHAT_PROMPT : REPORT_PROMPT,
+      instructions: promptFor(chat, languageOf(request)),
       input: [{ role: 'user', content: [{ type: 'input_text', text: buildInput(facts, body) }] }],
       text: {
         format: { type: 'json_schema', name: 'coach_report', schema: SCHEMA, strict: true },

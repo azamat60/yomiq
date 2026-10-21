@@ -4,6 +4,7 @@ import {
   type Draft,
   type Entry,
   type Favorite,
+  type HiddenRecent,
   type Insight,
   type InsightTurn,
   type Macros,
@@ -18,6 +19,9 @@ import { defaultEatenAt, toDateKey } from '@/shared/lib/date';
  */
 
 const newId = () => crypto.randomUUID();
+
+/** Recent and favorites match foods by name, ignoring case and stray spaces. */
+export const foodKey = (name: string) => name.trim().toLowerCase();
 
 // ---------- profile ----------
 
@@ -113,7 +117,7 @@ export function listFavorites(): Promise<Favorite[]> {
 export async function saveFavorite(
   input: Pick<Favorite, 'name' | 'per100' | 'defaultGrams'>,
 ): Promise<string> {
-  const existing = await db.favorites.where('name').equalsIgnoreCase(input.name).first();
+  const existing = await db.favorites.where('name').equalsIgnoreCase(input.name.trim()).first();
   if (existing) {
     await db.favorites.update(existing.id, {
       per100: input.per100,
@@ -124,6 +128,7 @@ export async function saveFavorite(
 
   const favorite: Favorite = {
     ...input,
+    name: input.name.trim(),
     id: newId(),
     usageCount: 0,
     lastUsedAt: Date.now(),
@@ -141,23 +146,54 @@ export async function markFavoriteUsed(id: string): Promise<void> {
   });
 }
 
-export async function deleteFavorite(id: string): Promise<void> {
-  await db.favorites.delete(id);
+export async function deleteFavorite(id: string): Promise<Favorite | undefined> {
+  const favorite = await db.favorites.get(id);
+  if (favorite) await db.favorites.delete(id);
+  return favorite;
 }
 
-/** Distinct foods eaten on the given day — powers "repeat yesterday". */
+/** Puts a deleted favorite back with its id and usage stats, so undo is lossless. */
+export async function restoreFavorite(favorite: Favorite): Promise<void> {
+  await db.favorites.put(favorite);
+}
+
+/**
+ * Distinct foods, most recent first, skipping ones already saved as favorites
+ * (they have their own list) and ones the user hid. Walks the whole diary
+ * lazily, so the list is as long as asked for, not capped by a scan window.
+ */
 export async function recentEntries(limit = 30): Promise<Entry[]> {
-  const all = await db.entries.orderBy('createdAt').reverse().limit(200).toArray();
+  const [favorites, hidden] = await Promise.all([db.favorites.toArray(), db.hiddenRecents.toArray()]);
+  const saved = new Set(favorites.map((favorite) => foodKey(favorite.name)));
+  const hiddenAt = new Map(hidden.map((item) => [item.key, item.hiddenAt]));
   const seen = new Set<string>();
   const unique: Entry[] = [];
-  for (const entry of all) {
-    const key = entry.name.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    unique.push(entry);
-    if (unique.length >= limit) break;
-  }
+
+  await db.entries
+    .orderBy('createdAt')
+    .reverse()
+    .until(() => unique.length >= limit)
+    .each((entry) => {
+      const key = foodKey(entry.name);
+      if (seen.has(key)) return;
+      seen.add(key);
+      if (saved.has(key)) return;
+      const since = hiddenAt.get(key);
+      if (since !== undefined && entry.createdAt <= since) return;
+      unique.push(entry);
+    });
+
   return unique;
+}
+
+export async function hideRecent(name: string): Promise<HiddenRecent> {
+  const item: HiddenRecent = { key: foodKey(name), hiddenAt: Date.now() };
+  await db.hiddenRecents.put(item);
+  return item;
+}
+
+export async function unhideRecent(name: string): Promise<void> {
+  await db.hiddenRecents.delete(foodKey(name));
 }
 
 // ---------- insights ----------
@@ -212,12 +248,8 @@ export async function exportData(): Promise<string> {
 }
 
 export async function clearAllData(): Promise<void> {
-  await db.transaction('rw', db.profile, db.entries, db.favorites, db.insights, async () => {
-    await Promise.all([
-      db.profile.clear(),
-      db.entries.clear(),
-      db.favorites.clear(),
-      db.insights.clear(),
-    ]);
+  const tables = [db.profile, db.entries, db.favorites, db.insights, db.hiddenRecents];
+  await db.transaction('rw', tables, async () => {
+    await Promise.all(tables.map((table) => table.clear()));
   });
 }

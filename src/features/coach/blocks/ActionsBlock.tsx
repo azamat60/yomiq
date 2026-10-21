@@ -1,10 +1,11 @@
 import type { CoachBlock } from '@/db/types';
-import { EFFORT_LABEL } from '../constants';
+import { useT } from '@/shared/i18n';
 import { BlockCard } from './BlockCard';
 
 type Actions = Extract<CoachBlock, { type: 'actions' }>;
 
 export function ActionsBlock({ block }: { block: Actions }) {
+  const t = useT();
   return (
     <BlockCard title={block.title}>
       <ol className="flex flex-col gap-3">
@@ -19,7 +20,7 @@ export function ActionsBlock({ block }: { block: Actions }) {
                 <span className="text-[13.5px] leading-snug text-muted">{step.detail}</span>
               )}
               <span className="mt-1 w-fit rounded-pill bg-surface-2 px-2 py-0.5 text-[11px] text-faint">
-                {EFFORT_LABEL[step.effort]}
+                {t.coach.effort[step.effort]}
               </span>
             </div>
           </li>

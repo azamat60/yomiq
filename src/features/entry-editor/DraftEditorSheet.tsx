@@ -11,11 +11,13 @@ import { MealPicker } from '@/shared/ui/MealPicker';
 import { MacroSummary } from '@/shared/ui/MacroSummary';
 import { useToast } from '@/shared/ui/Toast';
 import { formatDayLabel } from '@/shared/lib/date';
+import { useT } from '@/shared/i18n';
 import { DraftItemRow } from './DraftItemRow';
 
 export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
   const setDraft = useAppStore((s) => s.setDraft);
   const toast = useToast();
+  const t = useT();
 
   const [items, setItems] = useState<DraftItem[]>([]);
   const [meal, setMeal] = useState<Meal>('breakfast');
@@ -41,38 +43,47 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
     setItems((current) => current.filter((item) => item.id !== id));
   };
 
+  const valid = items.length > 0 && items.every((item) => item.grams > 0 && item.name.trim());
+
   const save = async () => {
-    if (items.length === 0) return;
+    if (!valid) return;
     setSaving(true);
-    await addEntriesFromDraft({ ...draft, items, meal });
+    try {
+      await addEntriesFromDraft({
+        ...draft,
+        items: items.map((item) => ({ ...item, name: item.name.trim() })),
+        meal,
+      });
+    } finally {
+      setSaving(false);
+    }
     haptic('success');
-    setSaving(false);
     close();
-    toast.show(`Logged: ${totals.kcal} kcal`);
+    toast.show(t.toast.logged(totals.kcal));
   };
 
   const addAllToFavorites = async () => {
     await Promise.all(
       items.map((item) =>
         saveFavorite({
-          name: item.name,
+          name: item.name.trim(),
           per100: item.per100,
           defaultGrams: Math.round(item.grams),
         }),
       ),
     );
     haptic('success');
-    toast.show('Added to favorites');
+    toast.show(t.toast.allAddedToFavorites);
   };
 
   return (
-    <Sheet open onClose={close} title={draft.title || 'Review the result'} tall>
+    <Sheet open onClose={close} title={draft.title || t.draft.review} tall>
       <div className="flex h-full flex-col gap-4">
         <div className="flex-1 space-y-4">
           {photoUrl && (
             <img
               src={photoUrl}
-              alt="Photo of the meal"
+              alt={t.photo.alt}
               className="h-40 w-full rounded-card object-cover"
             />
           )}
@@ -88,9 +99,9 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
           <div className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between px-1">
               <span className="text-[13px] font-medium text-muted">
-                Detected: {items.length}
+                {t.draft.detected(items.length)}
               </span>
-              <span className="text-[12.5px] text-faint">Adjust the weight if needed</span>
+              <span className="text-[12.5px] text-faint">{t.draft.adjust}</span>
             </div>
 
             <ul className="flex flex-col gap-2">
@@ -106,20 +117,25 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
 
             {items.length === 0 && (
               <p className="rounded-2xl border border-line bg-surface px-4 py-6 text-center text-[14px] text-faint">
-                All items removed
+                {t.draft.allRemoved}
               </p>
             )}
           </div>
 
           <div className="flex flex-col gap-2">
             <span className="px-1 text-[13px] font-medium text-muted">
-              Meal · {formatDayLabel(draft.date)}
+              {t.entry.mealOn(formatDayLabel(draft.date))}
             </span>
             <MealPicker value={meal} onChange={setMeal} />
           </div>
 
-          <Button variant="secondary" block onClick={() => void addAllToFavorites()}>
-            Save to favorites
+          <Button
+            variant="secondary"
+            block
+            disabled={!valid}
+            onClick={() => void addAllToFavorites()}
+          >
+            {t.draft.saveToFavorites}
           </Button>
         </div>
 
@@ -128,10 +144,10 @@ export function DraftEditorSheet({ draft }: { draft: Draft | null }) {
             size="lg"
             block
             loading={saving}
-            disabled={items.length === 0}
+            disabled={!valid}
             onClick={() => void save()}
           >
-            Add {totals.kcal} kcal
+            {t.draft.addKcal(totals.kcal)}
           </Button>
         </div>
       </div>

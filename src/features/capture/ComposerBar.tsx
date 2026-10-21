@@ -1,4 +1,5 @@
 import { IconCamera, IconMic, IconSend } from '@/shared/ui/icons';
+import { useT } from '@/shared/i18n';
 import { COMPOSER_MAX_CHARS } from './constants';
 
 export function ComposerBar({
@@ -18,6 +19,7 @@ export function ComposerBar({
   disabled: boolean;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
 }) {
+  const t = useT();
   const canSend = value.trim().length > 0;
 
   return (
@@ -25,7 +27,7 @@ export function ComposerBar({
       <button
         onClick={onPhoto}
         disabled={disabled}
-        aria-label="Take a photo"
+        aria-label={t.composer.takePhoto}
         className="grid size-10 shrink-0 place-items-center rounded-full text-muted transition-transform duration-150 active:scale-90 active:bg-surface-2 disabled:pointer-events-none disabled:opacity-35"
       >
         <IconCamera size={22} />
@@ -38,7 +40,7 @@ export function ComposerBar({
         maxLength={COMPOSER_MAX_CHARS}
         disabled={disabled}
         enterKeyHint="send"
-        placeholder={disabled ? 'Offline — recognition needs a connection' : 'What did you eat?'}
+        placeholder={disabled ? t.composer.placeholderOffline : t.composer.placeholder}
         onChange={(event) => onChange(event.target.value)}
         onInput={(event) => {
           const el = event.currentTarget;
@@ -60,7 +62,7 @@ export function ComposerBar({
         <button
           onClick={onSend}
           disabled={disabled}
-          aria-label="Analyse"
+          aria-label={t.composer.analyse}
           className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-on-accent transition-transform duration-150 active:scale-90 disabled:pointer-events-none disabled:opacity-30 [animation:yq-pop-in_180ms_var(--ease-out-back)]"
         >
           <IconSend size={20} />
@@ -69,7 +71,7 @@ export function ComposerBar({
         <button
           onClick={onMic}
           disabled={disabled}
-          aria-label="Record voice"
+          aria-label={t.composer.recordVoice}
           className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2 text-muted transition-transform duration-150 active:scale-90 disabled:pointer-events-none disabled:opacity-35"
         >
           <IconMic size={21} />

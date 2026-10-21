@@ -6,6 +6,7 @@ import { prepareImage } from '@/shared/lib/image';
 import { mealForNow } from '@/shared/lib/date';
 import { haptic } from '@/shared/lib/haptics';
 import { useAppStore } from '@/shared/store/app';
+import { getT } from '@/shared/i18n';
 
 export function useAnalyze() {
   const date = useAppStore((s) => s.date);
@@ -33,14 +34,14 @@ export function useAnalyze() {
       try {
         const { result, photo } = await task();
         if (result.items.length === 0) {
-          failAnalysis(result.note || "Couldn't recognize any food. Try another photo.");
+          failAnalysis(result.note || getT().analysis.noFood);
           return;
         }
         haptic('success');
         setDraft(toDraft(result, source, photo));
       } catch (error) {
         haptic('warning');
-        failAnalysis(error instanceof Error ? error.message : 'Something went wrong.');
+        failAnalysis(error instanceof Error ? error.message : getT().errors.generic);
       }
     },
     [failAnalysis, setDraft, startAnalysis, toDraft],

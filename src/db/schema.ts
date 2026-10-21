@@ -1,11 +1,12 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Entry, Favorite, Insight, Profile } from './types';
+import type { Entry, Favorite, HiddenRecent, Insight, Profile } from './types';
 
 export class YomiqDb extends Dexie {
   profile!: EntityTable<Profile, 'id'>;
   entries!: EntityTable<Entry, 'id'>;
   favorites!: EntityTable<Favorite, 'id'>;
   insights!: EntityTable<Insight, 'id'>;
+  hiddenRecents!: EntityTable<HiddenRecent, 'key'>;
 
   constructor() {
     super('yomiq');
@@ -28,6 +29,8 @@ export class YomiqDb extends Dexie {
             entry.eatenAt ??= entry.createdAt;
           }),
       );
+
+    this.version(3).stores({ hiddenRecents: 'key' });
   }
 }
 

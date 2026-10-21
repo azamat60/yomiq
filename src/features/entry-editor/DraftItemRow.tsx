@@ -6,7 +6,7 @@ import { GramsStepper } from '@/shared/ui/GramsStepper';
 import { MacroFields } from '@/shared/ui/MacroFields';
 import { MacroChips } from '@/shared/ui/MacroBar';
 import { IconChevronRight, IconTrash, IconWarning } from '@/shared/ui/icons';
-import { CONFIDENCE_LABEL } from '@/features/diary/constants';
+import { useT } from '@/shared/i18n';
 
 type Props = {
   item: DraftItem;
@@ -15,6 +15,7 @@ type Props = {
 };
 
 export function DraftItemRow({ item, onChange, onRemove }: Props) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const macros = portionMacros(item.per100, item.grams);
 
@@ -31,12 +32,12 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
           <span className="flex items-center gap-1.5">
             <span className="truncate text-[15.5px] font-medium">{item.name}</span>
             {item.confidence === 'low' && (
-              <span title={CONFIDENCE_LABEL.low}>
+              <span title={t.confidence.low}>
                 <IconWarning size={14} className="shrink-0 text-warn" />
               </span>
             )}
           </span>
-          <span className="tnum block text-[13px] text-faint">{Math.round(item.grams)} g</span>
+          <span className="tnum block text-[13px] text-faint">{Math.round(item.grams)} {t.common.g}</span>
           <span className="mt-1 block">
             <MacroChips macros={macros} />
           </span>
@@ -56,7 +57,7 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
           <input
             value={item.name}
             onChange={(e) => onChange({ name: e.target.value.slice(0, 60) })}
-            aria-label="Name"
+            aria-label={t.draft.name}
             className="rounded-xl border border-line bg-bg px-3 py-2.5 text-[15px] outline-none focus:border-accent"
           />
 
@@ -64,7 +65,7 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
 
           <div className="flex flex-col gap-2">
             <span className="px-1 text-[12.5px] font-medium text-muted">
-              Values for {Math.round(item.grams)} g
+              {t.grams.valuesFor(Math.round(item.grams))}
             </span>
             <MacroFields
               macros={macros}
@@ -73,8 +74,12 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
           </div>
 
           <p className="tnum px-1 text-[12.5px] text-faint">
-            Per 100 g: {Math.round(item.per100.kcal)} kcal · P {round(item.per100.protein)} · F{' '}
-            {round(item.per100.fat)} · C {round(item.per100.carbs)}
+            {t.draft.per100Line(
+              Math.round(item.per100.kcal),
+              round(item.per100.protein),
+              round(item.per100.fat),
+              round(item.per100.carbs),
+            )}
           </p>
 
           <button
@@ -82,7 +87,7 @@ export function DraftItemRow({ item, onChange, onRemove }: Props) {
             className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-[14px] font-medium text-danger active:bg-danger/10"
           >
             <IconTrash size={17} />
-            Remove item
+            {t.draft.removeItem}
           </button>
         </div>
       )}

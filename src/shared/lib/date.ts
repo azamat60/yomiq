@@ -1,4 +1,5 @@
 import type { Meal } from '@/db/types';
+import { getT } from '@/shared/i18n';
 
 /** Local calendar day as 'YYYY-MM-DD' — never UTC, or entries land on the wrong day. */
 export function toDateKey(date: Date = new Date()): string {
@@ -27,42 +28,32 @@ export function isFuture(key: string): boolean {
   return key > toDateKey();
 }
 
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-
 export function formatDayLabel(key: string): string {
+  const t = getT();
   const today = toDateKey();
-  if (key === today) return 'Today';
-  if (key === shiftDateKey(today, -1)) return 'Yesterday';
-  if (key === shiftDateKey(today, 1)) return 'Tomorrow';
+  if (key === today) return t.date.today;
+  if (key === shiftDateKey(today, -1)) return t.date.yesterday;
+  if (key === shiftDateKey(today, 1)) return t.date.tomorrow;
 
   const date = fromDateKey(key);
   const withinWeek = Math.abs(date.getTime() - fromDateKey(today).getTime()) < 6 * 864e5;
-  if (withinWeek) return WEEKDAYS[date.getDay()];
+  if (withinWeek) return capitalize(date.toLocaleDateString(t.intl, { weekday: 'long' }));
 
-  return `${MONTHS[date.getMonth()]} ${date.getDate()}`;
+  return date.toLocaleDateString(t.intl, { month: 'long', day: 'numeric' });
 }
 
 export function formatFullDate(key: string): string {
-  const date = fromDateKey(key);
-  return `${WEEKDAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`;
+  const options = { weekday: 'long', month: 'long', day: 'numeric' } as const;
+  return capitalize(fromDateKey(key).toLocaleDateString(getT().intl, options));
 }
 
 export function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return new Date(timestamp).toLocaleTimeString(getT().intl, { hour: 'numeric', minute: '2-digit' });
+}
+
+/** Russian weekday names come back lower-case from Intl. */
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 /** Value for an `<input type="time">`, which only speaks 24-hour 'HH:MM'. */

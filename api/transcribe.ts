@@ -1,6 +1,12 @@
-import { callOpenAI, checkAccess, fail, json, TRANSCRIBE_MODEL } from './_shared.js';
+import { callOpenAI, checkAccess, fail, json, languageOf, TRANSCRIBE_MODEL } from './_shared.js';
 
 const MAX_BYTES = 20 * 1024 * 1024;
+
+/** Written in the spoken language — the prompt biases the transcript towards it. */
+const TRANSCRIBE_PROMPT = {
+  en: 'The user is listing food they ate and its amount: grams, pieces, servings, spoonfuls.',
+  ru: 'Пользователь перечисляет, что съел, и количество: граммы, штуки, порции, ложки.',
+} as const;
 
 export async function POST(request: Request): Promise<Response> {
   const blocked = checkAccess(request);
@@ -22,11 +28,9 @@ export async function POST(request: Request): Promise<Response> {
   const upstream = new FormData();
   upstream.append('file', audio, fileNameFor(audio.type));
   upstream.append('model', TRANSCRIBE_MODEL);
-  upstream.append('language', 'en');
-  upstream.append(
-    'prompt',
-    'The user is listing food they ate and its amount: grams, pieces, servings, spoonfuls.',
-  );
+  const language = languageOf(request);
+  upstream.append('language', language);
+  upstream.append('prompt', TRANSCRIBE_PROMPT[language]);
 
   const response = await callOpenAI('/audio/transcriptions', { method: 'POST', body: upstream });
   if (!response.ok) return response;

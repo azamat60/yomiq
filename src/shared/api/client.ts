@@ -1,4 +1,5 @@
 import type { Confidence, Macros } from '@/db/types';
+import { getLocale, getT } from '@/shared/i18n';
 
 export type AnalysisItem = {
   name: string;
@@ -34,26 +35,42 @@ export class ApiError extends Error {
 }
 
 async function request(path: string, init: RequestInit & { method: string }): Promise<unknown> {
-  if (!navigator.onLine) {
-    throw new ApiError('No connection. Add the item manually or try again later.', 0);
-  }
+  const t = getT();
+  if (!navigator.onLine) throw new ApiError(t.errors.offline, 0);
 
   let response: Response;
   try {
     response = await fetch(path, {
       ...init,
-      headers: { ...(init.headers as Record<string, string>), 'x-app-code': getAccessCode() },
+      headers: {
+        ...(init.headers as Record<string, string>),
+        'x-app-code': getAccessCode(),
+        'x-app-lang': getLocale(),
+      },
     });
   } catch {
-    throw new ApiError('Could not reach the server.', 0);
+    throw new ApiError(t.errors.unreachable, 0);
   }
 
   const payload = (await response.json().catch(() => ({}))) as { error?: string };
   if (!response.ok) {
-    throw new ApiError(payload.error ?? 'Something went wrong.', response.status);
+    throw new ApiError(errorMessage(response.status, payload.error), response.status);
   }
 
   return payload;
+}
+
+/** The server speaks English; the statuses the user can act on get a localized message. */
+function errorMessage(status: number, serverMessage: string | undefined): string {
+  const t = getT();
+  const known: Record<number, string> = {
+    401: t.errors.accessCode,
+    413: t.errors.tooLarge,
+    422: t.errors.noSpeech,
+    429: t.errors.rateLimited,
+    502: t.errors.upstream,
+  };
+  return known[status] ?? serverMessage ?? t.errors.generic;
 }
 
 export function post(path: string, init: RequestInit): Promise<unknown> {
@@ -93,7 +110,7 @@ function normalize(payload: unknown): AnalysisResult {
     title: String(data.title ?? '').slice(0, 80),
     note: String(data.note ?? '').slice(0, 240),
     items: (Array.isArray(data.items) ? data.items : []).slice(0, 12).map((item) => ({
-      name: String(item?.name ?? 'Food item').slice(0, 60),
+      name: String(item?.name ?? getT().errors.foodItem).slice(0, 60),
       grams: clamp(item?.grams, 1, 5000, 100),
       per100: {
         kcal: clamp(item?.per100?.kcal, 0, 900, 0),

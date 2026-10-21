@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MIC_ERROR_TEXT, type MicError } from './constants';
+import { getT } from '@/shared/i18n';
+import type { MicError } from './constants';
 
 const MAX_SECONDS = 60;
 const TICK_MS = 250;
@@ -163,7 +164,7 @@ export function useRecorder({ onComplete, onEmpty, granted }: Options) {
     state,
     seconds,
     level,
-    error: error ? MIC_ERROR_TEXT[error] : null,
+    error: error ? getT().mic[error] : null,
     errorKind: error,
     clearError: useCallback(() => setError(null), []),
     start,

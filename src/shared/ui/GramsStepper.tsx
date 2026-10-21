@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { haptic } from '@/shared/lib/haptics';
 import { cn } from '@/shared/lib/cn';
+import { useT } from '@/shared/i18n';
 
 const QUICK = [50, 100, 150, 200, 300];
 const MAX_GRAMS = 5000;
@@ -10,6 +12,9 @@ type Props = {
 };
 
 export function GramsStepper({ grams, onChange }: Props) {
+  const t = useT();
+  // Raw text while typing, so clearing the box does not snap it back to 0.
+  const [typing, setTyping] = useState<string | null>(null);
   const step = grams >= 200 ? 25 : 10;
 
   const nudge = (delta: number) => {
@@ -20,18 +25,26 @@ export function GramsStepper({ grams, onChange }: Props) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-center gap-2">
-        <StepButton label="−" onClick={() => nudge(-step)} />
+        <StepButton label="−" aria={t.common.less} onClick={() => nudge(-step)} />
         <label className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-line bg-surface px-3 py-2.5 focus-within:border-accent">
           <input
             type="number"
             inputMode="numeric"
-            value={String(grams)}
-            onChange={(e) => onChange(Math.min(MAX_GRAMS, Math.max(0, Number(e.target.value) || 0)))}
+            value={typing ?? String(grams)}
+            onChange={(e) => {
+              setTyping(e.target.value);
+              onChange(Math.min(MAX_GRAMS, Math.max(0, Math.round(Number(e.target.value) || 0))));
+            }}
+            onFocus={(e) => e.target.select()}
+            onBlur={() => {
+              setTyping(null);
+              if (grams < 1) onChange(1);
+            }}
             className="tnum w-16 bg-transparent text-center text-[20px] font-bold outline-none"
           />
-          <span className="text-[15px] text-faint">g</span>
+          <span className="text-[15px] text-faint">{t.common.g}</span>
         </label>
-        <StepButton label="+" onClick={() => nudge(step)} />
+        <StepButton label="+" aria={t.common.more} onClick={() => nudge(step)} />
       </div>
 
       <div className="flex gap-1.5">
@@ -55,11 +68,11 @@ export function GramsStepper({ grams, onChange }: Props) {
   );
 }
 
-function StepButton({ label, onClick }: { label: string; onClick: () => void }) {
+function StepButton({ label, aria, onClick }: { label: string; aria: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      aria-label={label === '+' ? 'More' : 'Less'}
+      aria-label={aria}
       className="grid size-12 shrink-0 place-items-center rounded-full bg-surface-2 text-[24px] font-semibold text-text transition-transform active:scale-90 active:bg-surface-3"
     >
       {label}

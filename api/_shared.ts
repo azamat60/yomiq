@@ -21,6 +21,19 @@ export function fail(message: string, status: number): Response {
   return json({ error: message }, status);
 }
 
+const LANGUAGES = { en: 'English', ru: 'Russian' } as const;
+export type Language = keyof typeof LANGUAGES;
+
+/** The client sends its UI language so names, reports and transcripts match it. */
+export function languageOf(request: Request): Language {
+  const value = request.headers.get('x-app-lang');
+  return value && Object.hasOwn(LANGUAGES, value) ? (value as Language) : 'en';
+}
+
+export function languageName(language: Language): string {
+  return LANGUAGES[language];
+}
+
 export function requireApiKey(): string | null {
   return process.env.OPENAI_API_KEY || null;
 }

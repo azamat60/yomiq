@@ -1,12 +1,12 @@
 import type { CoachBlock, CoachStats } from '@/db/types';
 import { MACRO_COLOR } from '@/shared/ui/MacroBar';
-import { MEAL_LABEL, MEAL_ORDER } from '@/features/diary/constants';
+import { MEAL_ORDER } from '@/features/diary/constants';
+import { useT, type Dict } from '@/shared/i18n';
 import { BarChart } from '../charts/BarChart';
 import { HBarChart } from '../charts/HBarChart';
 import { Heatmap } from '../charts/Heatmap';
 import { SpanChart } from '../charts/SpanChart';
 import { StackedBar } from '../charts/StackedBar';
-import { SERIES_LABEL } from '../constants';
 import { BlockCard } from './BlockCard';
 
 type Chart = Extract<CoachBlock, { type: 'chart' }>;
@@ -18,20 +18,19 @@ const MEAL_COLOR: Record<string, string> = {
   snack: 'var(--warn)',
 };
 
-const DAY_INITIAL = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
 export function ChartBlock({ block, stats }: { block: Chart; stats: CoachStats }) {
-  const body = render(block, stats);
+  const t = useT();
+  const body = render(block, stats, t);
   if (!body) return null;
 
   return (
-    <BlockCard title={block.title || SERIES_LABEL[block.series]} caption={block.caption}>
+    <BlockCard title={block.title || t.coach.series[block.series]} caption={block.caption}>
       {body}
     </BlockCard>
   );
 }
 
-function render(block: Chart, stats: CoachStats): React.ReactNode {
+function render(block: Chart, stats: CoachStats, t: Dict): React.ReactNode {
   const logged = stats.byDay.filter((day) => day.entries > 0);
 
   switch (block.series) {
@@ -40,7 +39,7 @@ function render(block: Chart, stats: CoachStats): React.ReactNode {
       return (
         <BarChart
           columns={logged.map((day) => ({
-            label: dayTick(day.date, logged.length),
+            label: dayTick(day.date, logged.length, t),
             value: Math.round(day.kcal),
             over: day.kcal > stats.targets.kcal,
           }))}
@@ -54,7 +53,7 @@ function render(block: Chart, stats: CoachStats): React.ReactNode {
       return (
         <BarChart
           columns={logged.map((day) => ({
-            label: dayTick(day.date, logged.length),
+            label: dayTick(day.date, logged.length, t),
             value: day.kcal > 0 ? Math.round((day.snackKcal / day.kcal) * 100) : 0,
             over: day.kcal > 0 && day.snackKcal / day.kcal > 0.25,
           }))}
@@ -67,7 +66,7 @@ function render(block: Chart, stats: CoachStats): React.ReactNode {
       return (
         <StackedBar
           slices={MEAL_ORDER.map((meal) => ({
-            label: MEAL_LABEL[meal],
+            label: t.meal[meal],
             share: stats.mealKcalShare[meal],
             color: MEAL_COLOR[meal],
           }))}
@@ -78,14 +77,14 @@ function render(block: Chart, stats: CoachStats): React.ReactNode {
       return (
         <StackedBar
           slices={[
-            { label: 'Protein', share: stats.energySplit.protein, color: MACRO_COLOR.protein },
-            { label: 'Fat', share: stats.energySplit.fat, color: MACRO_COLOR.fat },
-            { label: 'Carbs', share: stats.energySplit.carbs, color: MACRO_COLOR.carbs },
+            { label: t.macro.protein, share: stats.energySplit.protein, color: MACRO_COLOR.protein },
+            { label: t.macro.fat, share: stats.energySplit.fat, color: MACRO_COLOR.fat },
+            { label: t.macro.carbs, share: stats.energySplit.carbs, color: MACRO_COLOR.carbs },
           ]}
           reference={[
-            { label: 'Protein', share: stats.targetEnergySplit.protein, color: MACRO_COLOR.protein },
-            { label: 'Fat', share: stats.targetEnergySplit.fat, color: MACRO_COLOR.fat },
-            { label: 'Carbs', share: stats.targetEnergySplit.carbs, color: MACRO_COLOR.carbs },
+            { label: t.macro.protein, share: stats.targetEnergySplit.protein, color: MACRO_COLOR.protein },
+            { label: t.macro.fat, share: stats.targetEnergySplit.fat, color: MACRO_COLOR.fat },
+            { label: t.macro.carbs, share: stats.targetEnergySplit.carbs, color: MACRO_COLOR.carbs },
           ]}
         />
       );
@@ -111,7 +110,7 @@ function render(block: Chart, stats: CoachStats): React.ReactNode {
       const spans = logged
         .filter((day) => day.firstHour !== null && day.lastHour !== null)
         .map((day) => ({
-          label: dayLabel(day.date),
+          label: dayLabel(day.date, t),
           from: day.firstHour as number,
           to: day.lastHour as number,
         }));
@@ -126,11 +125,11 @@ function render(block: Chart, stats: CoachStats): React.ReactNode {
 }
 
 /** Day numbers stop fitting past a fortnight, so long periods fall back to weekday letters. */
-function dayTick(date: string, count: number): string {
+function dayTick(date: string, count: number, t: Dict): string {
   if (count <= 14) return date.slice(8);
-  return DAY_INITIAL[new Date(`${date}T00:00:00`).getDay()];
+  return t.coach.dayInitials[new Date(`${date}T00:00:00`).getDay()];
 }
 
-function dayLabel(date: string): string {
-  return `${DAY_INITIAL[new Date(`${date}T00:00:00`).getDay()]} ${Number(date.slice(8))}`;
+function dayLabel(date: string, t: Dict): string {
+  return `${t.coach.dayInitials[new Date(`${date}T00:00:00`).getDay()]} ${Number(date.slice(8))}`;
 }

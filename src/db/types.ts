@@ -84,6 +84,16 @@ export type Favorite = {
   lastUsedAt: number;
 };
 
+/**
+ * A food the user dismissed from the Recent list. Entries stay in the diary;
+ * eating it again after hiddenAt brings it back.
+ */
+export type HiddenRecent = {
+  /** Lower-cased, trimmed food name — the same key Recent groups by. */
+  key: string;
+  hiddenAt: number;
+};
+
 /** A parsed food item before it becomes an Entry — shared by AI and manual flows. */
 export type DraftItem = {
   id: string;

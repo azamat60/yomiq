@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { haptic } from '@/shared/lib/haptics';
 import { IconSend } from '@/shared/ui/icons';
-
-const SUGGESTIONS = [
-  'Why do I snack so much?',
-  'What should I change first?',
-  'Is my protein enough?',
-];
+import { useT } from '@/shared/i18n';
 
 const MAX_CHARS = 400;
 
@@ -21,6 +16,7 @@ export function CoachComposer({
   showSuggestions: boolean;
   onAsk: (question: string) => void;
 }) {
+  const t = useT();
   const [value, setValue] = useState('');
 
   const send = (question: string) => {
@@ -35,7 +31,7 @@ export function CoachComposer({
     <div className="flex flex-col gap-2.5">
       {showSuggestions && (
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
-          {SUGGESTIONS.map((suggestion) => (
+          {t.coach.suggestions.map((suggestion) => (
             <button
               key={suggestion}
               disabled={disabled || busy}
@@ -54,8 +50,14 @@ export function CoachComposer({
           rows={1}
           maxLength={MAX_CHARS}
           disabled={disabled}
-          placeholder={disabled ? 'Offline — questions need a connection' : 'Ask the coach…'}
+          placeholder={disabled ? t.coach.askOffline : t.coach.askPlaceholder}
           onChange={(event) => setValue(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              send(value);
+            }
+          }}
           onInput={(event) => {
             const el = event.currentTarget;
             el.style.height = 'auto';
@@ -66,7 +68,7 @@ export function CoachComposer({
         <button
           onClick={() => send(value)}
           disabled={!value.trim() || disabled || busy}
-          aria-label="Ask"
+          aria-label={t.coach.ask}
           className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-on-accent transition-transform duration-150 active:scale-90 disabled:pointer-events-none disabled:opacity-30"
         >
           <IconSend size={20} />
