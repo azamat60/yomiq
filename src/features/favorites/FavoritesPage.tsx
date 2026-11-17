@@ -1,78 +1,80 @@
-import { useMemo, useState } from 'react';
-import type { Entry, Favorite } from '@/db/types';
-import { foodKey, saveFavorite } from '@/db/repository';
-import { haptic } from '@/shared/lib/haptics';
+import { useDeferredValue, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import type { Favorite } from '@/db/types';
+import { foodHistory, foodKey, listFavorites } from '@/db/repository';
 import { useAppStore } from '@/shared/store/app';
 import { useT } from '@/shared/i18n';
 import { Button } from '@/shared/ui/Button';
-import { useToast } from '@/shared/ui/Toast';
-import { IconClose, IconPlus, IconRepeat, IconSearch, IconStar, IconTrash } from '@/shared/ui/icons';
+import { IconClose, IconPlus, IconSearch, IconStar, IconTrash } from '@/shared/ui/icons';
 import { QuickAddSheet } from './QuickAddSheet';
 import { QuickRow } from './QuickRow';
 import { RowAction } from './RowAction';
-import { RECENT_PAGE, toFavorite, useQuickActions, useQuickList } from './useQuickList';
+import { RECENT_PAGE, useQuickActions } from './useQuickList';
+import { FoodHistory } from './FoodHistory';
 
 export function FavoritesPage() {
   const openCapture = useAppStore((s) => s.openCapture);
   const t = useT();
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<Favorite | null>(null);
-  const [recentLimit, setRecentLimit] = useState(RECENT_PAGE);
+  const [page, setPage] = useState(1);
 
-  const { favorites, recent, loading } = useQuickList(recentLimit);
-  const needle = foodKey(query);
+  const needle = useDeferredValue(foodKey(query));
+  const limit = page * RECENT_PAGE;
+  const favorites = useLiveQuery(listFavorites);
+  const result = useLiveQuery(async () => ({
+    needle,
+    entries: await foodHistory(needle, limit + 1),
+  }), [needle, limit]);
+  const history = result?.needle === needle ? result.entries : undefined;
+  const shownFavorites = favorites?.filter((item) => foodKey(item.name).includes(needle)) ?? [];
+  const empty = favorites !== undefined && history !== undefined && !shownFavorites.length && !history.length;
 
-  const shownFavorites = useMemo(
-    () => (needle ? favorites.filter((item) => foodKey(item.name).includes(needle)) : favorites),
-    [favorites, needle],
-  );
-  const shownRecent = useMemo(
-    () => (needle ? recent.filter((entry) => foodKey(entry.name).includes(needle)) : recent),
-    [recent, needle],
-  );
-  // A full page means there may be more behind it.
-  const canShowMore = !needle && recent.length >= recentLimit;
+  const changeQuery = (value: string) => {
+    setQuery(value);
+    setPage(1);
+  };
 
   return (
     <div className="flex flex-col">
       <header className="sticky top-0 z-30 border-b border-line bg-bg/85 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
         <h1 className="mb-3 text-[24px] font-bold tracking-tight">{t.foods.title}</h1>
-        <label className="flex items-center gap-2.5 rounded-full border border-line bg-surface px-4 py-2.5 focus-within:border-accent">
+        <div className="flex items-center gap-2.5 rounded-full border border-line bg-surface px-4 py-2.5 focus-within:border-accent">
           <IconSearch size={19} className="shrink-0 text-faint" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t.foods.search}
+            onChange={(e) => changeQuery(e.target.value)}
+            aria-label={t.foods.searchHistory}
+            placeholder={t.foods.searchHistory}
             className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-faint"
           />
           {query && (
             <button
-              onClick={() => setQuery('')}
+              onClick={() => changeQuery('')}
               aria-label={t.common.close}
               className="-mr-1 shrink-0 text-faint active:text-muted"
             >
               <IconClose size={18} />
             </button>
           )}
-        </label>
+        </div>
       </header>
 
       <div className="flex flex-col gap-6 px-4 py-5">
         {shownFavorites.length > 0 && <FavoritesSection items={shownFavorites} onPick={setPicked} />}
 
-        {shownRecent.length > 0 && (
-          <RecentSection
-            items={shownRecent}
+        {!!history?.length && (
+          <FoodHistory
+            entries={history.slice(0, limit)}
+            favorites={favorites ?? []}
             onPick={setPicked}
-            onMore={canShowMore ? () => setRecentLimit((limit) => limit + RECENT_PAGE) : undefined}
+            onMore={history.length > limit ? () => setPage((value) => value + 1) : undefined}
           />
         )}
 
-        {!loading && !needle && favorites.length === 0 && recent.length === 0 && (
-          <EmptyState onAdd={() => openCapture('manual')} />
-        )}
+        {empty && !needle && <EmptyState onAdd={() => openCapture('manual')} />}
 
-        {needle && shownFavorites.length === 0 && shownRecent.length === 0 && (
+        {empty && needle && (
           <p className="py-8 text-center text-[14px] text-faint">{t.foods.noResults}</p>
         )}
       </div>
@@ -101,6 +103,7 @@ function FavoritesSection({
             key={favorite.id}
             favorite={favorite}
             chips
+            showPhoto
             onPick={() => onPick(favorite)}
             trailing={
               <RowAction
@@ -114,60 +117,6 @@ function FavoritesSection({
           />
         ))}
       </ul>
-    </section>
-  );
-}
-
-function RecentSection({
-  items,
-  onPick,
-  onMore,
-}: {
-  items: Entry[];
-  onPick: (favorite: Favorite) => void;
-  onMore?: () => void;
-}) {
-  const t = useT();
-  const toast = useToast();
-  const { hideRecent } = useQuickActions();
-
-  const star = async (entry: Entry) => {
-    await saveFavorite({
-      name: entry.name,
-      per100: entry.per100,
-      defaultGrams: Math.round(entry.grams),
-    });
-    haptic('success');
-    toast.show(t.toast.addedToFavorites(entry.name));
-  };
-
-  return (
-    <section className="flex flex-col gap-2">
-      <SectionTitle icon={<IconRepeat size={16} />} title={t.foods.recent} />
-      <ul className="overflow-hidden rounded-card border border-line bg-surface">
-        {items.map((entry) => (
-          <QuickRow
-            key={entry.id}
-            favorite={toFavorite(entry)}
-            onPick={() => onPick(toFavorite(entry))}
-            trailing={
-              <>
-                <RowAction label={t.foods.addToFavorites(entry.name)} tone="accent" onClick={() => star(entry)}>
-                  <IconStar size={19} />
-                </RowAction>
-                <RowAction label={t.foods.hide(entry.name)} tone="danger" onClick={() => hideRecent(entry.name)}>
-                  <IconClose size={19} />
-                </RowAction>
-              </>
-            }
-          />
-        ))}
-      </ul>
-      {onMore && (
-        <Button variant="ghost" size="sm" onClick={onMore} className="self-center">
-          {t.foods.showMore}
-        </Button>
-      )}
     </section>
   );
 }

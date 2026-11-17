@@ -138,6 +138,7 @@ export function ComposerSheet({ open }: { open: boolean }) {
               <QuickRow
                 key={favorite.id}
                 favorite={favorite}
+                showPhoto={!isRecent(favorite)}
                 onPick={() => pick(favorite)}
                 trailing={
                   <RowAction

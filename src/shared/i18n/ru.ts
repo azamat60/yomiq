@@ -215,8 +215,10 @@ export const ru: Dict = {
 
   foods: {
     title: 'Мои продукты',
-    search: 'Поиск продуктов',
     favorites: 'Избранное',
+    searchHistory: 'Поиск в истории и избранном',
+    history: 'История',
+    hideFromHistory: (name: string) => `Скрыть из истории все записи «${name}»`,
     recent: 'Недавние',
     noResults: 'Ничего не найдено',
     remove: (name: string) => `Убрать ${name}`,

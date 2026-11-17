@@ -4,6 +4,7 @@ import {
   type Draft,
   type Entry,
   type Favorite,
+  type FavoritePhoto,
   type HiddenRecent,
   type Insight,
   type InsightTurn,
@@ -114,6 +115,25 @@ export function listFavorites(): Promise<Favorite[]> {
   return db.favorites.orderBy('usageCount').reverse().toArray();
 }
 
+export function nextFavoriteWithoutPhoto(): Promise<Favorite | undefined> {
+  return db.favorites.filter((favorite) => favorite.photo === undefined).first();
+}
+
+export async function fillFavoritePhoto(
+  id: string,
+  findPhoto: (name: string) => Promise<FavoritePhoto | null>,
+): Promise<void> {
+  const favorite = await db.favorites.get(id);
+  if (!favorite || favorite.photo !== undefined) return;
+
+  const photo = await findPhoto(favorite.name);
+  await db.favorites
+    .where('id')
+    .equals(id)
+    .and((current) => current.name === favorite.name && current.photo === undefined)
+    .modify({ photo });
+}
+
 export async function saveFavorite(
   input: Pick<Favorite, 'name' | 'per100' | 'defaultGrams'>,
 ): Promise<string> {
@@ -184,6 +204,20 @@ export async function recentEntries(limit = 30): Promise<Entry[]> {
     });
 
   return unique;
+}
+
+export async function foodHistory(needle: string, limit: number): Promise<Entry[]> {
+  const hiddenAt = new Map((await db.hiddenRecents.toArray()).map((item) => [item.key, item.hiddenAt]));
+
+  return db.entries
+    .orderBy('[date+eatenAt]')
+    .reverse()
+    .filter((entry) => {
+      const key = foodKey(entry.name);
+      return key.includes(needle) && entry.createdAt > (hiddenAt.get(key) ?? -Infinity);
+    })
+    .limit(limit)
+    .toArray();
 }
 
 export async function hideRecent(name: string): Promise<HiddenRecent> {

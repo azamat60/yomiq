@@ -82,6 +82,14 @@ export type Favorite = {
   defaultGrams: number;
   usageCount: number;
   lastUsedAt: number;
+  photo?: FavoritePhoto | null;
+};
+
+export type FavoritePhoto = {
+  url: string;
+  source: string;
+  author: string;
+  license: string;
 };
 
 /**

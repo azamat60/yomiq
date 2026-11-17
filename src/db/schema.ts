@@ -31,6 +31,7 @@ export class YomiqDb extends Dexie {
       );
 
     this.version(3).stores({ hiddenRecents: 'key' });
+    this.version(4).stores({ entries: 'id, date, [date+meal], createdAt, eatenAt, [date+eatenAt]' });
   }
 }
 

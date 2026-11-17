@@ -8,11 +8,13 @@ import { useT } from '@/shared/i18n';
 import { SplashScreen } from '@/shared/ui/SplashScreen';
 import { IconCoach, IconDiary, IconPlus, IconStar, IconUser } from '@/shared/ui/icons';
 import { CaptureFlow } from '@/features/capture/CaptureFlow';
+import { useFavoritePhotos } from '@/features/favorites/useFavoritePhotos';
 
 export function AppLayout() {
   const openCapture = useAppStore((s) => s.openCapture);
   const t = useT();
   useTodayRollover();
+  useFavoritePhotos();
 
   return (
     <div className="min-h-dvh bg-bg">

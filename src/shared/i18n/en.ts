@@ -210,8 +210,10 @@ export const en = {
 
   foods: {
     title: 'My Foods',
-    search: 'Search foods',
     favorites: 'Favorites',
+    searchHistory: 'Search history and favorites',
+    history: 'History',
+    hideFromHistory: (name: string) => `Hide all history entries for ${name}`,
     recent: 'Recent',
     noResults: 'No results found',
     remove: (name: string) => `Remove ${name}`,
